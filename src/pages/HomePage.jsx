@@ -1,5 +1,5 @@
 import './HomePage.css';
-
+import {FaFacebook,FaWhatsapp,FaYoutube,FaEnvelope}from "react-icons/fa";
 export default function HomePage({ navigate, showToast }) {
   return (
     <div className="page active" id="page-home">
@@ -8,22 +8,22 @@ export default function HomePage({ navigate, showToast }) {
         <div className="hero-content">
           <div className="hero-text">
             <div className="hero-badge">🏆 Ranked #1 School in the District</div>
-            <h1 className="hero-title">Where Young Minds <span className="accent-text">Discover</span> &amp; Excel</h1>
-            <p className="hero-subtitle">Vidyalaya School of Excellence offers world-class education, holistic development, and a nurturing environment for students from Class 1 to Class 12.</p>
+            <h1 className="hero-title">Indian <span className="accent-text">Springs</span>  School</h1>
+            <p className="hero-subtitle">A comprehensive digital learning platform for students, teachers, and parents. Access Study materials, take quizzes and more from Class 6 to Class 10 students.</p>
             <div className="hero-actions">
               <button className="btn-primary" onClick={() => navigate('admission')}>Apply for Admission ✦</button>
               <button className="btn-outline-white" onClick={() => navigate('academics')}>Explore Academics →</button>
             </div>
             <div className="hero-stats">
-              <div className="hero-stat"><div className="num">4,200+</div><div className="label">Students</div></div>
+              <div className="hero-stat"><div className="num">500+</div><div className="label">Students</div></div>
               <div className="hero-stat"><div className="num">98%</div><div className="label">Pass Rate</div></div>
-              <div className="hero-stat"><div className="num">25+</div><div className="label">Years Legacy</div></div>
+              <div className="hero-stat"><div className="num">15+</div><div className="label">Years Legacy</div></div>
             </div>
           </div>
           <div className="hero-visual">
             <div className="hero-card"><div className="card-icon">📚</div><div className="card-title">Today's Schedule</div><div className="card-value">Physics → Math → English → P.E.</div></div>
             <div className="hero-card"><div className="card-icon">📣</div><div className="card-title">Latest Announcement</div><div className="card-value">Annual Sports Day — Dec 15th 🏅</div></div>
-            <div className="hero-card"><div className="card-icon">📊</div><div className="card-title">Board Results 2024</div><div className="card-value">Class 12: 98.4% | Class 10: 99.1%</div></div>
+            <div className="hero-card"><div className="card-icon">📊</div><div className="card-title">Board Results 2026</div><div className="card-value">Class 12: 98.4% | Class 10: 99.1%</div></div>
           </div>
         </div>
       </section>
@@ -41,7 +41,7 @@ export default function HomePage({ navigate, showToast }) {
             <div className="achievement-card"><div className="ach-icon">🎓</div><div className="ach-number">15,000+</div><div className="ach-label">Alumni Worldwide</div></div>
             <div className="achievement-card"><div className="ach-icon">🔬</div><div className="ach-number">12</div><div className="ach-label">Labs &amp; Innovation Hubs</div></div>
             <div className="achievement-card"><div className="ach-icon">⚽</div><div className="ach-number">200+</div><div className="ach-label">Sports Trophies</div></div>
-            <div className="achievement-card"><div className="ach-icon">🌍</div><div className="ach-number">98%</div><div className="ach-label">Board Exam Pass Rate</div></div>
+            <div className="achievement-card"><div className="ach-icon">🌍</div><div className="ach-number">90%</div><div className="ach-label">Board Exam Pass Rate</div></div>
           </div>
         </div>
       </section>
@@ -54,11 +54,11 @@ export default function HomePage({ navigate, showToast }) {
             <h2 className="section-title">Latest Announcements</h2>
           </div>
           <div className="announcements-list">
-            <div className="announcement-item"><span className="ann-badge badge-new">NEW</span><div className="ann-content"><div className="ann-title">Admissions Open for 2025–26 Academic Year</div><div className="ann-meta">Posted on December 1, 2024 · Administration</div></div></div>
-            <div className="announcement-item"><span className="ann-badge badge-event">EVENT</span><div className="ann-content"><div className="ann-title">Annual Science Fair — Register by December 10</div><div className="ann-meta">Posted on November 28, 2024 · Science Department</div></div></div>
-            <div className="announcement-item"><span className="ann-badge badge-notice">NOTICE</span><div className="ann-content"><div className="ann-title">Winter Break: December 22 to January 5</div><div className="ann-meta">Posted on November 25, 2024 · Academic Office</div></div></div>
-            <div className="announcement-item"><span className="ann-badge badge-event">EVENT</span><div className="ann-content"><div className="ann-title">Parent-Teacher Meeting — December 14, 2024</div><div className="ann-meta">Posted on November 22, 2024 · Principal's Office</div></div></div>
-            <div className="announcement-item"><span className="ann-badge badge-new">NEW</span><div className="ann-content"><div className="ann-title">Smart Classroom Inauguration — Block C Ready</div><div className="ann-meta">Posted on November 20, 2024 · Facilities</div></div></div>
+            <div className="announcement-item"><span className="ann-badge badge-new">NEW</span><div className="ann-content"><div className="ann-title">Admissions Open for 2026–27 Academic Year</div><div className="ann-meta">Posted on June 12, 2026 · Administration</div></div></div>
+            <div className="announcement-item"><span className="ann-badge badge-event">EVENT</span><div className="ann-content"><div className="ann-title">Annual Science Fair — Register by December 10</div><div className="ann-meta">Posted on November 28, 2026 · Science Department</div></div></div>
+            <div className="announcement-item"><span className="ann-badge badge-notice">NOTICE</span><div className="ann-content"><div className="ann-title">Winter Break: December 22 to January 5</div><div className="ann-meta">Posted on November 25, 2026 · Academic Office</div></div></div>
+            <div className="announcement-item"><span className="ann-badge badge-event">EVENT</span><div className="ann-content"><div className="ann-title">Parent-Teacher Meeting — December 14, 2026</div><div className="ann-meta">Posted on November 22, 2026 · Principal's Office</div></div></div>
+            <div className="announcement-item"><span className="ann-badge badge-new">NEW</span><div className="ann-content"><div className="ann-title">Smart Classroom Inauguration — Block C Ready</div><div className="ann-meta">Posted on November 20, 2026 · Facilities</div></div></div>
           </div>
         </div>
       </section>
@@ -72,8 +72,8 @@ export default function HomePage({ navigate, showToast }) {
           </div>
           <div className="events-grid">
             <div className="event-card"><div className="event-date-bar"><div><div className="event-day">14</div><div className="event-month">Dec</div></div><span>Parent-Teacher Meeting</span></div><div className="event-info"><div className="event-title">Semester Progress Review</div><div className="event-desc">Individual meetings with all class teachers from 9 AM – 2 PM</div></div></div>
-            <div className="event-card"><div className="event-date-bar"><div><div className="event-day">15</div><div className="event-month">Dec</div></div><span>Annual Sports Day</span></div><div className="event-info"><div className="event-title">Athletic Meet 2024</div><div className="event-desc">Track events, team sports, and cultural performances. All students participate.</div></div></div>
-            <div className="event-card"><div className="event-date-bar"><div><div className="event-day">18</div><div className="event-month">Dec</div></div><span>Science Fair</span></div><div className="event-info"><div className="event-title">Innovate &amp; Inspire 2024</div><div className="event-desc">Student project presentations judged by external panel of educators.</div></div></div>
+            <div className="event-card"><div className="event-date-bar"><div><div className="event-day">15</div><div className="event-month">Dec</div></div><span>Annual Sports Day</span></div><div className="event-info"><div className="event-title">Athletic Meet 2026</div><div className="event-desc">Track events, team sports, and cultural performances. All students participate.</div></div></div>
+            <div className="event-card"><div className="event-date-bar"><div><div className="event-day">18</div><div className="event-month">Dec</div></div><span>Science Fair</span></div><div className="event-info"><div className="event-title">Innovate &amp; Inspire 2026</div><div className="event-desc">Student project presentations judged by external panel of educators.</div></div></div>
           </div>
         </div>
       </section>
@@ -119,12 +119,12 @@ export default function HomePage({ navigate, showToast }) {
           <div className="footer-grid">
             <div>
               <div className="footer-brand"><div className="logo-icon">🏫</div><div className="footer-brand-name">Vidyalaya</div></div>
-              <p className="footer-desc">A premier institution committed to excellence in academics, sports, and character development since 1999. Shaping tomorrow's leaders today.</p>
+              <p className="footer-desc">A premier institution committed to excellence in academics, sports, and character development since 2011. Shaping tomorrow's leaders today.</p>
               <div className="footer-social">
-                <div className="social-btn">f</div>
-                <div className="social-btn">in</div>
-                <div className="social-btn">tw</div>
-                <div className="social-btn">yt</div>
+                <div className="social-btn"><FaFacebook/></div>
+                <div className="social-btn"><FaWhatsapp/></div>
+                <div className="social-btn"><FaYoutube/></div>
+                <div className="social-btn"><FaEnvelope/></div>
               </div>
             </div>
             <div>
@@ -140,19 +140,19 @@ export default function HomePage({ navigate, showToast }) {
             <div>
               <div className="footer-col-title">Academics</div>
               <div className="footer-links">
-                <a>Primary School</a>
-                <a>Middle School</a>
-                <a>High School</a>
-                <a>Science Stream</a>
-                <a>Commerce Stream</a>
+                <a>6th class</a>
+                <a>7th class</a>
+                <a>8th class</a>
+                <a>9th class</a>
+                <a>10th class</a>
               </div>
             </div>
             <div>
               <div className="footer-col-title">Contact</div>
-              <div className="footer-contact-item"><span>📍</span><span>Vidyalaya Campus, Koramangala, Bengaluru 560034</span></div>
-              <div className="footer-contact-item"><span>📞</span><span>+91 80 1234 5678</span></div>
-              <div className="footer-contact-item"><span>✉️</span><span>info@vidyalaya.edu.in</span></div>
-              <div className="footer-contact-item"><span>🕐</span><span>Mon–Sat: 8:00 AM – 4:30 PM</span></div>
+              <div className="footer-contact-item"><span>📍</span><span>NRI S INDIAN SPRINGS SCHOOL, Lakshminagar, Visakhapatnam,Andhra Pradesh 531173</span></div>
+              <div className="footer-contact-item"><span>📞</span><span>+91 8977044167</span></div>
+              <div className="footer-contact-item"><span>✉️</span><span>info@indianspringsschool.edu.in</span></div>
+              <div className="footer-contact-item"><span>🕐</span><span>Mon–Sat: 8:00 AM – 4:00 PM</span></div>
             </div>
           </div>
           <div className="footer-bottom">

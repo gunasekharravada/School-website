@@ -14,10 +14,11 @@ export default function AcademicsPage({ navigate }) {
             <h2 className="section-title">Classes &amp; Streams</h2>
           </div>
           <div className="achievements-grid">
-            <div className="achievement-card"><div className="ach-icon">🌿</div><div className="ach-number">1–5</div><div className="ach-label">Primary School — Foundational Learning</div></div>
-            <div className="achievement-card"><div className="ach-icon">📖</div><div className="ach-number">6–8</div><div className="ach-label">Middle School — Exploratory Phase</div></div>
-            <div className="achievement-card"><div className="ach-icon">🧪</div><div className="ach-number">9–10</div><div className="ach-label">High School — Board Preparation</div></div>
-            <div className="achievement-card"><div className="ach-icon">🎓</div><div className="ach-number">11–12</div><div className="ach-label">Senior Secondary — Science &amp; Commerce</div></div>
+            <div className="achievement-card"><div className="ach-icon">🌿</div><div className="ach-number">6</div><div className="ach-label">High School — State Board</div></div>
+            <div className="achievement-card"><div className="ach-icon">📖</div><div className="ach-number">7</div><div className="ach-label">High School — State Board</div></div>
+            <div className="achievement-card"><div className="ach-icon">🧪</div><div className="ach-number">8</div><div className="ach-label">High School — State Board</div></div>
+            <div className="achievement-card"><div className="ach-icon">📚</div><div className="ach-number">9</div><div className="ach-label">High School — State Board</div></div>
+            <div className="achievement-card"><div className="ach-icon">🎓</div><div className="ach-number">10</div><div className="ach-label">High School — State Board</div></div>
           </div>
         </div>
       </section>

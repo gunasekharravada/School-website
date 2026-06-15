@@ -15,8 +15,8 @@ export default function AdmissionPage({ navigate, showToast }) {
   return (
     <div className="page" id="page-admission">
       <div className="page-hero">
-        <h1 className="page-hero-title">Online Admissions 2025–26</h1>
-        <p className="page-hero-sub">Begin your child's journey with Vidyalaya. Apply online in minutes.</p>
+        <h1 className="page-hero-title">Online Admissions 2026–27</h1>
+        <p className="page-hero-sub">Begin your child's journey with Indian Springs School, Apply Now.</p>
       </div>
       <section className="section section-alt" id="admissionFormSection">
         <div className="container">
@@ -70,7 +70,7 @@ export default function AdmissionPage({ navigate, showToast }) {
               <div className="upload-hint">Birth Certificate, Previous Marksheet, Passport Photo (PDF / JPG, max 5MB each)</div>
             </div>
             <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              <button className="btn-submit" onClick={submitAdmission}>Submit Application 🚀</button>
+              <button className="btn-submit" onClick={submitAdmission}>Submit Application</button>
               <button className="btn-secondary" onClick={() => navigate('home')}>Cancel</button>
             </div>
           </div>

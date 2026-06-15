@@ -1,4 +1,5 @@
 import './Navbar.css';
+import {FaUser}from "react-icons/fa";
 
 export default function Navbar({ navigate, setActiveNav }) {
   function toggleLoginDropdown() {
@@ -48,7 +49,7 @@ export default function Navbar({ navigate, setActiveNav }) {
       </ul>
       <div className="nav-login-wrap" id="loginWrap">
         <button className="btn-login-main" onClick={toggleLoginDropdown}>
-          <span>🔐</span> Login <span>▾</span>
+          <FaUser/> Login <span>▾</span>
         </button>
         <div className="login-dropdown" id="loginDropdown">
           <div className="login-dropdown-item" onClick={() => { navigate('student-login'); closeLoginDropdown(); }}>

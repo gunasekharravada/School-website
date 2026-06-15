@@ -8,6 +8,7 @@
   border-bottom: 1px solid var(--border);
   height: var(--nav-h);
   display: flex;
+  justify-content: space-between;
   align-items: center;
   padding: 0 2rem;
   box-shadow: var(--shadow-sm);
@@ -16,7 +17,7 @@
 .nav-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  
   font-family: var(--font-display);
   font-size: 1.4rem;
   font-weight: 900;
@@ -30,6 +31,7 @@
   height: 38px;
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   border-radius: 10px;
+  margin-right: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -42,9 +44,9 @@
 .nav-links {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.2rem;
-  margin-left: auto;
-  margin-right: 1.5rem;
+  
 }
 
 .nav-link {
@@ -146,7 +148,45 @@
 }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .nav-links { display: none; }
   .hamburger { display: flex; margin-left: auto; }
+}
+
+/* ===== MOBILE ONLY ADJUSTMENTS ===== */
+@media (max-width: 480px) {
+  .navbar {
+    padding: 0 1rem; /* Reduce side padding for more screen real estate */
+  }
+
+  /* Make the logo icon and text smaller */
+  .nav-brand {
+    font-size: 1.1rem; 
+  }
+
+  .nav-brand .logo-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    margin-right: 5px; /* Slightly tighter gap on mobile */
+  }
+
+  /* Scale down the main login button */
+  .btn-login-main {
+    padding: 0.35rem 0.8rem;
+    font-size: 0.8rem;
+    gap: 4px;
+  }
+
+  /* If you use icons inside the login button, scale them too */
+  .btn-login-main svg,
+  .btn-login-main i {
+    font-size: 0.8rem;
+  }
+
+  /* Slightly shift the hamburger margin if needed next to the button */
+  .hamburger {
+    margin-left: 0.75rem; 
+  }
 }

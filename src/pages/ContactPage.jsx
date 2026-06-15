@@ -21,10 +21,10 @@ export default function ContactPage({ navigate, showToast }) {
             <div className="contact-info-card">
               <div className="contact-info-title">Get In Touch</div>
               <div className="contact-info-sub">Our admissions team is available Monday through Saturday to assist you.</div>
-              <div className="contact-info-item"><div className="contact-info-icon">📍</div><div><div className="contact-info-label">Address</div><div className="contact-info-value">Vidyalaya Campus, Koramangala, Bengaluru 560034, Karnataka</div></div></div>
-              <div className="contact-info-item"><div className="contact-info-icon">📞</div><div><div className="contact-info-label">Phone</div><div className="contact-info-value">+91 80 1234 5678</div></div></div>
-              <div className="contact-info-item"><div className="contact-info-icon">✉️</div><div><div className="contact-info-label">Email</div><div className="contact-info-value">info@vidyalaya.edu.in</div></div></div>
-              <div className="contact-info-item"><div className="contact-info-icon">🕐</div><div><div className="contact-info-label">Office Hours</div><div className="contact-info-value">Mon–Sat: 8:00 AM – 4:30 PM</div></div></div>
+              <div className="contact-info-item"><div className="contact-info-icon">📍</div><div><div className="contact-info-label">Address</div><div className="contact-info-value">NRI S INDIAN SPRINGS SCHOOL, Lakshminagar, Visakhapatnam,Andhra Pradesh 531173</div></div></div>
+              <div className="contact-info-item"><div className="contact-info-icon">📞</div><div><div className="contact-info-label">Phone</div><div className="contact-info-value">+91 8977044167</div></div></div>
+              <div className="contact-info-item"><div className="contact-info-icon">✉️</div><div><div className="contact-info-label">Email</div><div className="contact-info-value">info@indianspringsschool.edu.in</div></div></div>
+              <div className="contact-info-item"><div className="contact-info-icon">🕐</div><div><div className="contact-info-label">Office Hours</div><div className="contact-info-value">Mon–Sat: 8:00 AM – 4:00 PM</div></div></div>
               <div className="divider" style={{ borderColor: 'rgba(255,255,255,0.2)' }}></div>
               <div className="contact-info-title" style={{ fontSize: '1rem' }}>Feedback</div>
               <div style={{ marginTop: '1rem' }}>
@@ -58,7 +58,7 @@ export default function ContactPage({ navigate, showToast }) {
                 </select>
               </div>
               <div className="form-group"><label className="form-label">Message</label><textarea className="form-textarea" placeholder="Write your message here..."></textarea></div>
-              <button className="btn-submit" onClick={() => showToast("Message sent! We'll respond within 24 hours.", 'success')}>Send Message ✉️</button>
+              <button className="btn-submit" onClick={() => showToast("Message sent! We'll respond within 24 hours.", 'success')}>Send Message </button>
             </div>
           </div>
         </div>

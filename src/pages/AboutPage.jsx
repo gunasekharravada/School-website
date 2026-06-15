@@ -4,14 +4,14 @@ export default function AboutPage({ navigate }) {
   return (
     <div className="page" id="page-about">
       <div className="page-hero">
-        <h1 className="page-hero-title">About Vidyalaya</h1>
+        <h1 className="page-hero-title">About Indian Springs School</h1>
         <p className="page-hero-sub">25 years of shaping young minds and building tomorrow's leaders.</p>
       </div>
       <section className="section section-alt">
         <div className="container">
           <div className="about-grid">
             <div className="about-img-placeholder">
-              🏫<span style={{ fontSize: '1rem', opacity: 0.8 }}>Campus, Bengaluru</span>
+              🏫<span style={{ fontSize: '1rem', opacity: 0.8 }}>Campus, Visakhapatnam</span>
             </div>
             <div>
               <div className="about-label">Our Story</div>
