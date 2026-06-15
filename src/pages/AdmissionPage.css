@@ -1,0 +1,42 @@
+/* ===== ADMISSION PAGE ===== */
+.admission-form-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+  box-shadow: var(--shadow);
+}
+
+.success-card {
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.success-icon { font-size: 4rem; margin-bottom: 1rem; }
+
+.app-id {
+  font-family: var(--font-mono);
+  background: var(--bg);
+  padding: 0.7rem 1.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 1rem 0;
+  display: inline-block;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+  .admission-form-card { padding: 1.5rem; }
+  .form-row { grid-template-columns: 1fr; }
+}
