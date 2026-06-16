@@ -1,7 +1,24 @@
 import '../components/Sidebar.css';
 import './AdminDashboard.css';
+// 1. Import auth from your newly created firebase config file
+import { auth } from '../firebase/firebaseconfig'; 
+// 2. Import the signOut function from the Firebase SDK
+import { signOut } from 'firebase/auth';
 
 export default function AdminDashboard({ navigate, showToast }) {
+  
+  // Handle secure logout via Firebase
+  async function handleLogout() {
+    try {
+      await signOut(auth);
+      showToast('Logged out successfully', 'success');
+      navigate('home'); // Redirect to home page after sign out
+    } catch (error) {
+      console.error("Logout Error: ", error.message);
+      showToast('Failed to log out smoothly. Please try again.', 'danger');
+    }
+  }
+
   function switchDashSection(id, el) {
     document.querySelectorAll('#page-admin-dashboard .dash-section').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
@@ -26,7 +43,12 @@ export default function AdminDashboard({ navigate, showToast }) {
           <div className="sidebar-item" onClick={(e) => switchDashSection('adm-gallery', e.currentTarget)}><span className="icon">🖼️</span>Gallery Management</div>
           <div className="sidebar-item" onClick={(e) => switchDashSection('adm-settings', e.currentTarget)}><span className="icon">⚙️</span>Settings</div>
         </nav>
-        <div className="sidebar-footer"><div className="sidebar-item" onClick={() => navigate('home')} style={{ color: 'rgba(255,100,100,0.8)' }}><span className="icon">🚪</span>Logout</div></div>
+        {/* 3. Updated the Logout click handler to use our new handleLogout function */}
+        <div className="sidebar-footer">
+          <div className="sidebar-item" onClick={handleLogout} style={{ color: 'rgba(255,100,100,0.8)' }}>
+            <span className="icon">🚪</span>Logout
+          </div>
+        </div>
       </aside>
 
       <div className="dashboard-main">
@@ -41,7 +63,7 @@ export default function AdminDashboard({ navigate, showToast }) {
 
           {/* Home */}
           <div className="dash-section active" id="adm-home">
-            <div className="welcome-banner"><div className="welcome-title">Admin Dashboard 🏫</div><div className="welcome-subtitle">Vidyalaya School of Excellence · Academic Year 2024–25</div></div>
+            <div className="welcome-banner"><div className="welcome-title">Admin Dashboard 🏫</div><div className="welcome-subtitle">Vidyalaya School of Excellence · Academic Year 2025–26</div></div>
             <div className="admin-stat-cards">
               <div className="admin-stat"><div className="admin-stat-num">4,218</div><div className="admin-stat-label">Total Students</div></div>
               <div className="admin-stat" style={{ borderColor: 'var(--secondary)' }}><div className="admin-stat-num" style={{ color: 'var(--secondary)' }}>280</div><div className="admin-stat-label">Teaching Staff</div></div>
@@ -61,8 +83,8 @@ export default function AdminDashboard({ navigate, showToast }) {
               </div>
               <div className="card"><div className="card-title mb-2">📣 Recent Notices</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <div style={{ padding: '0.6rem', background: 'var(--bg)', borderRadius: '6px' }}><div style={{ fontWeight: 600, fontSize: '0.85rem' }}>Winter Break Announced</div><div className="text-muted text-sm">Dec 1, 2024</div></div>
-                  <div style={{ padding: '0.6rem', background: 'var(--bg)', borderRadius: '6px' }}><div style={{ fontWeight: 600, fontSize: '0.85rem' }}>Sports Day Schedule Released</div><div className="text-muted text-sm">Nov 28, 2024</div></div>
+                  <div style={{ padding: '0.6rem', background: 'var(--bg)', borderRadius: '6px' }}><div style={{ fontWeight: 600, fontSize: '0.85rem' }}>Winter Break Announced</div><div className="text-muted text-sm">Dec 1, 2026</div></div>
+                  <div style={{ padding: '0.6rem', background: 'var(--bg)', borderRadius: '6px' }}><div style={{ fontWeight: 600, fontSize: '0.85rem' }}>Sports Day Schedule Released</div><div className="text-muted text-sm">Nov 28, 2026</div></div>
                 </div>
               </div>
             </div>
@@ -107,10 +129,10 @@ export default function AdminDashboard({ navigate, showToast }) {
           {/* Admissions */}
           <div className="dash-section" id="adm-admissions">
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>📋 Admission Applications</h2>
-            <div className="admission-app-card"><div className="app-info"><div className="app-name">Rahul Verma</div><div className="app-meta">Applied for Class 9 · Dec 3, 2024 · parent@email.com</div></div><div className="app-actions"><button className="btn-submit btn-sm" onClick={() => showToast('Application Approved!', 'success')}>✓ Approve</button><button className="btn-secondary btn-sm" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => showToast('Application rejected', '')}>✗ Reject</button></div></div>
-            <div className="admission-app-card"><div className="app-info"><div className="app-name">Ananya Singh</div><div className="app-meta">Applied for Class 6 · Dec 2, 2024 · mom@gmail.com</div></div><div className="app-actions"><button className="btn-submit btn-sm" onClick={() => showToast('Application Approved!', 'success')}>✓ Approve</button><button className="btn-secondary btn-sm" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => showToast('Application rejected', '')}>✗ Reject</button></div></div>
-            <div className="admission-app-card"><div className="app-info"><div className="app-name">Mohammed Ali</div><div className="app-meta">Applied for Class 11 Science · Nov 30, 2024 · dad@email.com</div></div><div className="app-actions"><button className="btn-submit btn-sm" onClick={() => showToast('Application Approved!', 'success')}>✓ Approve</button><button className="btn-secondary btn-sm" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => showToast('Application rejected', '')}>✗ Reject</button></div></div>
-            <div className="admission-app-card"><div className="app-info"><div className="app-name">Priya Patel</div><div className="app-meta">Applied for Class 1 · Nov 28, 2024 · priyapatel@gmail.com</div></div><div className="app-actions"><button className="btn-submit btn-sm" onClick={() => showToast('Application Approved!', 'success')}>✓ Approve</button><button className="btn-secondary btn-sm" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => showToast('Application rejected', '')}>✗ Reject</button></div></div>
+            <div className="admission-app-card"><div className="app-info"><div className="app-name">Rahul Verma</div><div className="app-meta">Applied for Class 9 · Dec 3, 2026 · parent@email.com</div></div><div className="app-actions"><button className="btn-submit btn-sm" onClick={() => showToast('Application Approved!', 'success')}>✓ Approve</button><button className="btn-secondary btn-sm" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => showToast('Application rejected', '')}>✗ Reject</button></div></div>
+            <div className="admission-app-card"><div className="app-info"><div className="app-name">Ananya Singh</div><div className="app-meta">Applied for Class 6 · Dec 2, 2026 · mom@gmail.com</div></div><div className="app-actions"><button className="btn-submit btn-sm" onClick={() => showToast('Application Approved!', 'success')}>✓ Approve</button><button className="btn-secondary btn-sm" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => showToast('Application rejected', '')}>✗ Reject</button></div></div>
+            <div className="admission-app-card"><div className="app-info"><div className="app-name">Mohammed Ali</div><div className="app-meta">Applied for Class 11 Science · Nov 30, 2026 · dad@email.com</div></div><div className="app-actions"><button className="btn-submit btn-sm" onClick={() => showToast('Application Approved!', 'success')}>✓ Approve</button><button className="btn-secondary btn-sm" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => showToast('Application rejected', '')}>✗ Reject</button></div></div>
+            <div className="admission-app-card"><div className="app-info"><div className="app-name">Priya Patel</div><div className="app-meta">Applied for Class 1 · Nov 28, 2026 · priyapatel@gmail.com</div></div><div className="app-actions"><button className="btn-submit btn-sm" onClick={() => showToast('Application Approved!', 'success')}>✓ Approve</button><button className="btn-secondary btn-sm" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => showToast('Application rejected', '')}>✗ Reject</button></div></div>
           </div>
 
           {/* Notice Management */}
@@ -127,8 +149,8 @@ export default function AdminDashboard({ navigate, showToast }) {
             </div>
             <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Recent Notices</h3>
             <div className="announcements-list">
-              <div className="announcement-item"><span className="ann-badge badge-new">LIVE</span><div className="ann-content"><div className="ann-title">Winter Break: December 22 to January 5</div><div className="ann-meta">Published Dec 1, 2024 · All Users</div></div><button className="btn-secondary btn-sm" onClick={() => showToast('Notice deleted', '')}>Delete</button></div>
-              <div className="announcement-item"><span className="ann-badge badge-event">LIVE</span><div className="ann-content"><div className="ann-title">Annual Sports Day — December 15</div><div className="ann-meta">Published Nov 28, 2024 · All Users</div></div><button className="btn-secondary btn-sm" onClick={() => showToast('Notice deleted', '')}>Delete</button></div>
+              <div className="announcement-item"><span className="ann-badge badge-new">LIVE</span><div className="ann-content"><div className="ann-title">Winter Break: December 22 to January 5</div><div className="ann-meta">Published Dec 1, 2026 · All Users</div></div><button className="btn-secondary btn-sm" onClick={() => showToast('Notice deleted', '')}>Delete</button></div>
+              <div className="announcement-item"><span className="ann-badge badge-event">LIVE</span><div className="ann-content"><div className="ann-title">Annual Sports Day — December 15</div><div className="ann-meta">Published Nov 28, 2026 · All Users</div></div><button className="btn-secondary btn-sm" onClick={() => showToast('Notice deleted', '')}>Delete</button></div>
             </div>
           </div>
 
@@ -173,13 +195,13 @@ export default function AdminDashboard({ navigate, showToast }) {
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>⚙️ System Settings</h2>
             <div className="card" style={{ maxWidth: '600px' }}>
               <div className="form-section-title">School Information</div>
-              <div className="form-group"><label className="form-label">School Name</label><input className="form-input" defaultValue="Vidyalaya School of Excellence" /></div>
+              <div className="form-group"><label className="form-label">School Name</label><input className="form-input" defaultValue="India Springs School of Excellence" /></div>
               <div className="form-group"><label className="form-label">Principal Name</label><input className="form-input" defaultValue="Dr. Rajan Iyer" /></div>
               <div className="form-group"><label className="form-label">Contact Email</label><input className="form-input" defaultValue="info@vidyalaya.edu.in" /></div>
               <div className="form-group"><label className="form-label">Phone</label><input className="form-input" defaultValue="+91 80 1234 5678" /></div>
               <div className="form-section-title">Academic Settings</div>
               <div className="form-row">
-                <div className="form-group"><label className="form-label">Academic Year</label><input className="form-input" defaultValue="2024–25" /></div>
+                <div className="form-group"><label className="form-label">Academic Year</label><input className="form-input" defaultValue="2025–26" /></div>
                 <div className="form-group"><label className="form-label">Current Term</label><select className="form-select"><option>Term 1</option><option defaultValue>Term 2</option></select></div>
               </div>
               <button className="btn-submit" onClick={() => showToast('Settings saved successfully!', 'success')}>Save Settings</button>

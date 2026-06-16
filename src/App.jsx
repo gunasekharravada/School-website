@@ -1,3 +1,5 @@
+import React, { useEffect } from 'react'; // Added React and useEffect
+import { getAuth, onAuthStateChanged } from 'firebase/auth'; // Added Firebase Auth imports
 import './global.css';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
@@ -20,9 +22,11 @@ const dashPages = ['student-dashboard', 'teacher-dashboard', 'parent-dashboard',
 
 function showToast(msg, type) {
   const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.className = 'toast show' + (type ? ` ${type}` : '');
-  setTimeout(() => { toast.classList.remove('show'); }, 3000);
+  if (toast) {
+    toast.textContent = msg;
+    toast.className = 'toast show' + (type ? ` ${type}` : '');
+    setTimeout(() => { toast.classList.remove('show'); }, 3000);
+  }
 }
 
 function navigate(page) {
@@ -54,14 +58,38 @@ function setActiveNav(el) {
   el.classList.add('active');
 }
 
-document.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape') {
-    const dropdown = document.getElementById('loginDropdown');
-    if (dropdown) dropdown.classList.remove('open');
-  }
-});
+if (typeof window !== 'undefined') {
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      const dropdown = document.getElementById('loginDropdown');
+      if (dropdown) dropdown.classList.remove('open');
+    }
+  });
+}
 
 export default function App() {
+  
+  // This hook runs immediately when the website loads/reloads
+  useEffect(() => {
+    const auth = getAuth();
+    
+    // Listen to see if an Admin is already logged into Firebase
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("Admin session detected! Stay on dashboard.");
+        
+        // Give the DOM a tiny split-second to mount, then push to admin dashboard
+        setTimeout(() => {
+          navigate('admin-dashboard');
+        }, 100);
+      } else {
+        console.log("No user logged in.");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <div id="app">
       <Navbar navigate={navigate} setActiveNav={setActiveNav} />

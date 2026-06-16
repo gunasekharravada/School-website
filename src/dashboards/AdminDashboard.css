@@ -47,7 +47,15 @@
   padding: 1.5rem;
   box-shadow: var(--shadow-sm);
 }
+/* Inside AdminDashboard.css */
+.dash-section {
+  display: none; /* If this is hiding everything */
+}
 
+/* Ensure the active section is forced visible */
+.dash-section.active {
+  display: block !important; 
+}
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .admission-app-card { flex-direction: column; align-items: flex-start; }

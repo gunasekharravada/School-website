@@ -1,13 +1,9 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { initializeApp } from 'firebase/app';
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Your Firebase configuration object
 const firebaseConfig = {
-  apiKey: "AIzaSyCfM7Bkzxs1iZ8XIddgXRoytbZqAS00fLc",
+apiKey: "AIzaSyCfM7Bkzxs1iZ8XIddgXRoytbZqAS00fLc",
   authDomain: "vidayalaya-8fbf7.firebaseapp.com",
   projectId: "vidayalaya-8fbf7",
   storageBucket: "vidayalaya-8fbf7.firebasestorage.app",
@@ -18,4 +14,17 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+
+// Initialize Firebase Auth
+const auth = getAuth(app);
+
+// Enable local persistence so Admin stays logged in on reload/tab close
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log("Firebase auth persistence set to local successfully.");
+  })
+  .catch((error) => {
+    console.error("Error setting auth persistence:", error);
+  });
+
+export { app, auth };
