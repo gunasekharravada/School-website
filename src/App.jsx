@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react'; // Added React and useEffect
-import { getAuth, onAuthStateChanged } from 'firebase/auth'; // Added Firebase Auth imports
+import React, { useEffect } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import './global.css';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
@@ -29,7 +29,12 @@ function showToast(msg, type) {
   }
 }
 
+// Updated navigation to save the active page to the browser's memory
 function navigate(page) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('currentPage', page);
+  }
+
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.dashboard-page').forEach(p => p.classList.remove('active'));
 
@@ -68,20 +73,25 @@ if (typeof window !== 'undefined') {
 }
 
 export default function App() {
-  
-  // This hook runs immediately when the website loads/reloads
   useEffect(() => {
-    const auth = getAuth();
+    // 1. Check browser memory for the last visited page on reload
+    const savedPage = localStorage.getItem('currentPage');
     
-    // Listen to see if an Admin is already logged into Firebase
+    if (savedPage) {
+      navigate(savedPage); // Stay exactly on the current page
+    } else {
+      navigate('home'); // Default fallback if it's the absolute first visit
+    }
+
+    // 2. Safely handle Firebase sessions without forcefully changing the user's active page
+    const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        console.log("Admin session detected! Stay on dashboard.");
-        
-        // Give the DOM a tiny split-second to mount, then push to admin dashboard
-        setTimeout(() => {
-          navigate('admin-dashboard');
-        }, 100);
+        console.log("Session detected.");
+        // Only run a dynamic redirect if no specific page was stored in memory
+        if (!savedPage) {
+          setTimeout(() => { navigate('admin-dashboard'); }, 100);
+        }
       } else {
         console.log("No user logged in.");
       }

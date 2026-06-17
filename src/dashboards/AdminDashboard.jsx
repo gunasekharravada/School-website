@@ -1,23 +1,254 @@
+import { useState, useEffect } from 'react';
 import '../components/Sidebar.css';
 import './AdminDashboard.css';
-// 1. Import auth from your newly created firebase config file
-import { auth } from '../firebase/firebaseconfig'; 
-// 2. Import the signOut function from the Firebase SDK
-import { signOut } from 'firebase/auth';
+import { auth, db } from '../firebase/firebaseconfig'; 
+import { signOut, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth'; // Added onAuthStateChanged
+import { collection, doc, setDoc, query, where, getDocs, getDoc, updateDoc } from 'firebase/firestore';
 
 export default function AdminDashboard({ navigate, showToast }) {
-  
-  // Handle secure logout via Firebase
+  const [activeModal, setActiveModal] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+
+  // Profile data states for loading/updating admin records
+  // Initialized cleanly with empty strings instead of "Loading..." text strings
+  const [adminProfile, setAdminProfile] = useState({
+    fullName: '',
+    contactNumber: ''
+  });
+
+  const [studentFormData, setStudentFormData] = useState({
+    fullName: '', dob: '', gender: '', className: '', section: '',
+    rollNo: '', studentGrade: '', previousSchool: '',
+    parentName: '', relationship: 'Father', parentEmail: '', parentPhone: '', address: ''
+  });
+
+  const [teacherFormData, setTeacherFormData] = useState({
+    teacherName: '', employeeId: '', dob: '', gender: '', subjects: '', assignedClasses: '', teacherEmail: '', teacherPhone: ''
+  });
+
+  // FIXED: Handles persistence on page reload by tracking active auth sessions dynamically
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        try {
+          const adminDocRef = doc(db, 'admins', currentUser.uid);
+          const docSnap = await getDoc(adminDocRef);
+          
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setAdminProfile({
+              fullName: data.fullName || 'Administrator',
+              contactNumber: data.contactNumber || ''
+            });
+          } else {
+            // Fallback setup if manual firestore document hasn't been built yet
+            setAdminProfile({
+              fullName: 'Vidyalaya Admin',
+              contactNumber: ''
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching admin data on state change:", error);
+        }
+      } else {
+        // No user logged in, kick out to home screen to protect routes safely
+        navigate('home');
+      }
+    });
+
+    // Cleanup subscription tracker on component unmount
+    return () => unsubscribe();
+  }, [navigate]);
+
+  const handleStudentChange = (e) => {
+    const { name, value } = e.target;
+    setStudentFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleTeacherChange = (e) => {
+    const { name, value } = e.target;
+    setTeacherFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleProfileChange = (e) => {
+    const { name, value } = e.target;
+    setAdminProfile((prev) => ({ ...prev, [name]: value }));
+  };
+
   async function handleLogout() {
     try {
       await signOut(auth);
       showToast('Logged out successfully', 'success');
-      navigate('home'); // Redirect to home page after sign out
+      navigate('home'); 
     } catch (error) {
       console.error("Logout Error: ", error.message);
       showToast('Failed to log out smoothly. Please try again.', 'danger');
     }
   }
+
+  // Handle Admin Profile Updating
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    setIsUpdatingProfile(true);
+    try {
+      const adminDocRef = doc(db, 'admins', currentUser.uid);
+      const updatedFullName = adminProfile.fullName.trim();
+      const updatedContactNumber = adminProfile.contactNumber.trim();
+
+      await updateDoc(adminDocRef, {
+        fullName: updatedFullName,
+        contactNumber: updatedContactNumber
+      });
+
+      // Synchronize changes to local state immediately so sidebar & navbar refresh together
+      setAdminProfile({
+        fullName: updatedFullName,
+        contactNumber: updatedContactNumber
+      });
+
+      showToast('Profile records updated successfully!', 'success');
+    } catch (error) {
+      console.error("Admin Profile Update Error: ", error.message);
+      showToast('Failed to update details. Try checking database rules.', 'danger');
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
+  const handleStudentRegistration = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const studentsRef = collection(db, 'students');
+      const duplicateQuery = query(
+        studentsRef,
+        where('academicInfo.rollNumber', '==', studentFormData.rollNo.trim())
+      );
+      
+      const querySnapshot = await getDocs(duplicateQuery);
+      
+      if (!querySnapshot.empty) {
+        showToast(`Registration failed: Roll Number "${studentFormData.rollNo}" already exists!`, 'danger');
+        setIsSubmitting(false);
+        return; 
+      }
+
+      const temporaryPassword = "Password123!"; 
+      const userCredential = await createUserWithEmailAndPassword(
+        auth, 
+        studentFormData.parentEmail.trim(), 
+        temporaryPassword
+      );
+      
+      const uid = userCredential.user.uid;
+
+      const studentPayload = {
+        uid: uid,
+        studentInfo: {
+          fullName: studentFormData.fullName.trim(),
+          dateOfBirth: studentFormData.dob,
+          gender: studentFormData.gender,
+          class: studentFormData.className,
+        },
+        academicInfo: {
+          section: studentFormData.section.trim(),
+          rollNumber: studentFormData.rollNo.trim(),
+          grade: studentFormData.studentGrade.trim(),
+          previousSchool: studentFormData.previousSchool || 'N/A'
+        },
+        contactInfo: {
+          parentName: studentFormData.parentName.trim(),
+          relationship: studentFormData.relationship,
+          email: studentFormData.parentEmail.trim().toLowerCase(),
+          phone: studentFormData.parentPhone.trim(),
+          residentialAddress: studentFormData.address.trim()
+        },
+        status: 'Active',
+        createdAt: new Date().toISOString()
+      };
+
+      await setDoc(doc(db, 'students', uid), studentPayload);
+
+      showToast('Student registered and authenticated successfully!', 'success');
+      setActiveModal(null);
+      setStudentFormData({
+        fullName: '', dob: '', gender: '', className: '', section: '',
+        rollNo: '', studentGrade: '', previousSchool: '',
+        parentName: '', relationship: 'Father', parentEmail: '', parentPhone: '', address: ''
+      });
+
+    } catch (error) {
+      console.error("Student Registration Core Error: ", error.message);
+      showToast(error.message, 'danger');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleTeacherRegistration = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const teachersRef = collection(db, 'teachers');
+      const duplicateTeacherQuery = query(
+        teachersRef,
+        where('employeeId', '==', teacherFormData.employeeId.trim())
+      );
+
+      const querySnapshot = await getDocs(duplicateTeacherQuery);
+
+      if (!querySnapshot.empty) {
+        showToast(`Registration failed: Teacher with Employee ID "${teacherFormData.employeeId}" already exists!`, 'danger');
+        setIsSubmitting(false);
+        return; 
+      }
+
+      const temporaryPassword = "TeacherPassword123!"; 
+      const userCredential = await createUserWithEmailAndPassword(
+        auth, 
+        teacherFormData.teacherEmail.trim(), 
+        temporaryPassword
+      );
+      
+      const uid = userCredential.user.uid;
+
+      const teacherPayload = {
+        uid: uid,
+        employeeId: teacherFormData.employeeId.trim(),
+        teacherName: teacherFormData.teacherName.trim(),
+        dateOfBirth: teacherFormData.dob,
+        gender: teacherFormData.gender,
+        subjects: teacherFormData.subjects.split(',').map(s => s.trim()), 
+        assignedClasses: teacherFormData.assignedClasses.split(',').map(c => c.trim()), 
+        contactInfo: {
+          email: teacherFormData.teacherEmail.trim().toLowerCase(),
+          phone: teacherFormData.teacherPhone.trim()
+        },
+        status: 'Active',
+        createdAt: new Date().toISOString()
+      };
+
+      await setDoc(doc(db, 'teachers', uid), teacherPayload);
+
+      showToast('Teacher registered and authenticated successfully!', 'success');
+      setActiveModal(null);
+      setTeacherFormData({
+        teacherName: '', employeeId: '', dob: '', gender: '', subjects: '', assignedClasses: '', teacherEmail: '', teacherPhone: ''
+      });
+
+    } catch (error) {
+      console.error("Teacher Registration Core Error: ", error.message);
+      showToast(error.message, 'danger');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   function switchDashSection(id, el) {
     document.querySelectorAll('#page-admin-dashboard .dash-section').forEach(s => s.classList.remove('active'));
@@ -29,21 +260,36 @@ export default function AdminDashboard({ navigate, showToast }) {
   return (
     <div className="dashboard-page" id="page-admin-dashboard">
       <aside className="sidebar">
-        <div className="sidebar-header"><div className="sidebar-brand"><div className="logo-icon">🏫</div><div className="sidebar-brand-name">Vidyalaya</div></div></div>
-        <div className="sidebar-user"><div className="sidebar-avatar">⚙️</div><div className="sidebar-user-name">Dr. Rajan Iyer</div><div className="sidebar-user-role">Principal &amp; Administrator</div></div>
+        <div className="sidebar-header">
+          <div className="sidebar-brand">
+            <div className="logo-icon">🏫</div>
+            <div className="sidebar-brand-name">Vidyalaya</div>
+          </div>
+        </div>
+        
+        {/* Dynamic Sidebar - Listens to state updates real-time */}
+        <div className="sidebar-user">
+          <div className="sidebar-avatar">⚙️</div>
+          <div className="sidebar-user-name">{adminProfile.fullName || 'System Admin'}</div>
+          <div className="sidebar-user-role">System Administrator</div>
+        </div>
+        
         <nav className="sidebar-nav">
           <div className="sidebar-section-label">Core</div>
           <div className="sidebar-item active" onClick={(e) => switchDashSection('adm-home', e.currentTarget)}><span className="icon">🏠</span>Dashboard</div>
           <div className="sidebar-item" onClick={(e) => switchDashSection('adm-students', e.currentTarget)}><span className="icon">🎓</span>Student Management</div>
           <div className="sidebar-item" onClick={(e) => switchDashSection('adm-teachers', e.currentTarget)}><span className="icon">👩‍🏫</span>Teacher Management</div>
           <div className="sidebar-item" onClick={(e) => switchDashSection('adm-admissions', e.currentTarget)}><span className="icon">📋</span>Admissions</div>
+          
           <div className="sidebar-section-label">Management</div>
           <div className="sidebar-item" onClick={(e) => switchDashSection('adm-notices', e.currentTarget)}><span className="icon">📣</span>Notice Management</div>
           <div className="sidebar-item" onClick={(e) => switchDashSection('adm-events', e.currentTarget)}><span className="icon">📅</span>Event Management</div>
           <div className="sidebar-item" onClick={(e) => switchDashSection('adm-gallery', e.currentTarget)}><span className="icon">🖼️</span>Gallery Management</div>
+          
+          <div className="sidebar-section-label">Account</div>
+          <div className="sidebar-item" onClick={(e) => switchDashSection('adm-profile', e.currentTarget)}><span className="icon">👤</span>My Profile</div>
           <div className="sidebar-item" onClick={(e) => switchDashSection('adm-settings', e.currentTarget)}><span className="icon">⚙️</span>Settings</div>
         </nav>
-        {/* 3. Updated the Logout click handler to use our new handleLogout function */}
         <div className="sidebar-footer">
           <div className="sidebar-item" onClick={handleLogout} style={{ color: 'rgba(255,100,100,0.8)' }}>
             <span className="icon">🚪</span>Logout
@@ -56,12 +302,14 @@ export default function AdminDashboard({ navigate, showToast }) {
           <div className="topbar-title">Admin Panel</div>
           <div className="topbar-right">
             <div className="topbar-btn">🔔</div>
-            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.9rem', fontWeight: 700 }}>R</div>
+            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.9rem', fontWeight: 700 }}>
+              {adminProfile.fullName ? adminProfile.fullName.charAt(0).toUpperCase() : 'A'}
+            </div>
           </div>
         </div>
         <div className="dashboard-content">
 
-          {/* Home */}
+          {/* HOME SECTION */}
           <div className="dash-section active" id="adm-home">
             <div className="welcome-banner"><div className="welcome-title">Admin Dashboard 🏫</div><div className="welcome-subtitle">Vidyalaya School of Excellence · Academic Year 2025–26</div></div>
             <div className="admin-stat-cards">
@@ -90,13 +338,13 @@ export default function AdminDashboard({ navigate, showToast }) {
             </div>
           </div>
 
-          {/* Student Management */}
+          {/* STUDENTS SECTION */}
           <div className="dash-section" id="adm-students">
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>🎓 Student Management</h2>
             <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
               <input className="form-input" style={{ maxWidth: '280px' }} placeholder="🔍 Search students..." />
-              <select className="form-select" style={{ maxWidth: '180px' }}><option>All Classes</option><option>Class 10</option><option>Class 11</option><option>Class 12</option></select>
-              <button className="btn-submit btn-sm" onClick={() => showToast('Add student form ready for backend', '')}>+ Add Student</button>
+              <select className="form-select" style={{ maxWidth: '180px' }}><option>All Classes</option><option>Class 6</option><option>Class 7</option><option>Class 8</option><option>Class 9</option><option>Class 10</option></select>
+              <button className="btn-submit btn-sm" onClick={() => setActiveModal('student')}>+ Add Student</button>
             </div>
             <table className="data-table">
               <thead><tr><th>Student Name</th><th>Class</th><th>Roll No.</th><th>Attendance</th><th>Status</th><th>Actions</th></tr></thead>
@@ -104,109 +352,220 @@ export default function AdminDashboard({ navigate, showToast }) {
                 <tr><td><strong>Arjun Sharma</strong></td><td>10A</td><td>VID2024042</td><td>94%</td><td><span className="status-badge status-active">Active</span></td><td><button className="btn-secondary btn-sm" onClick={() => showToast('Viewing Arjun Sharma profile', '')}>View</button></td></tr>
                 <tr><td><strong>Preethi Nair</strong></td><td>10A</td><td>VID2024043</td><td>97%</td><td><span className="status-badge status-active">Active</span></td><td><button className="btn-secondary btn-sm">View</button></td></tr>
                 <tr><td><strong>Rahul Gupta</strong></td><td>10A</td><td>VID2024044</td><td>78%</td><td><span className="status-badge status-pending">Review</span></td><td><button className="btn-secondary btn-sm">View</button></td></tr>
-                <tr><td><strong>Sana Khan</strong></td><td>11A</td><td>VID2024045</td><td>99%</td><td><span className="status-badge status-active">Active</span></td><td><button className="btn-secondary btn-sm">View</button></td></tr>
-                <tr><td><strong>Vikram Rao</strong></td><td>12B</td><td>VID2024046</td><td>88%</td><td><span className="status-badge status-active">Active</span></td><td><button className="btn-secondary btn-sm">View</button></td></tr>
               </tbody>
             </table>
           </div>
 
-          {/* Teacher Management */}
+          {/* TEACHERS SECTION */}
           <div className="dash-section" id="adm-teachers">
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>👩‍🏫 Teacher Management</h2>
-            <div style={{ marginBottom: '1rem' }}><button className="btn-submit btn-sm" onClick={() => showToast('Add teacher form ready for backend', '')}>+ Add Teacher</button></div>
+            <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
+              <input className="form-input" style={{ maxWidth: '280px' }} placeholder="🔍 Search teachers..." />
+              <select className="form-select" style={{ maxWidth: '180px' }}>
+                <option>All Subjects</option>
+                <option>Science</option>
+                <option>Mathematics</option>
+                <option>Social Studies</option>
+                <option>English</option>
+              </select>
+              <button className="btn-submit btn-sm" onClick={() => setActiveModal('teacher')}>+ Add Teacher</button>
+            </div>
             <table className="data-table">
-              <thead><tr><th>Teacher Name</th><th>Department</th><th>Subject</th><th>Classes</th><th>Status</th></tr></thead>
+              <thead><tr><th>Teacher Name</th><th>Employee ID</th><th>Subjects</th><th>Assigned Classes</th><th>Status</th></tr></thead>
               <tbody>
-                <tr><td><strong>Priya Mehta</strong></td><td>Science</td><td>Physics</td><td>10A, 10B, 11A, 12A</td><td><span className="status-badge status-active">Active</span></td></tr>
-                <tr><td><strong>Anil Kumar</strong></td><td>Mathematics</td><td>Mathematics</td><td>10A, 10B, 11A</td><td><span className="status-badge status-active">Active</span></td></tr>
-                <tr><td><strong>Sneha Rao</strong></td><td>Languages</td><td>English</td><td>9A, 9B, 10A, 10B</td><td><span className="status-badge status-active">Active</span></td></tr>
-                <tr><td><strong>Ramesh Iyer</strong></td><td>Science</td><td>Chemistry</td><td>11A, 11B, 12A, 12B</td><td><span className="status-badge status-active">Active</span></td></tr>
-                <tr><td><strong>Kavita Sharma</strong></td><td>Social Science</td><td>History</td><td>8A, 9A, 10A</td><td><span className="status-badge status-pending">On Leave</span></td></tr>
+                <tr><td><strong>Priya Mehta</strong></td><td>EMP2026081</td><td>Physics, Chemistry</td><td>10A, 10B, 11A, 12A</td><td><span className="status-badge status-active">Active</span></td></tr>
+                <tr><td><strong>Anil Kumar</strong></td><td>EMP2026094</td><td>Mathematics</td><td>10A, 10B, 11A</td><td><span className="status-badge status-active">Active</span></td></tr>
               </tbody>
             </table>
           </div>
 
-          {/* Admissions */}
-          <div className="dash-section" id="adm-admissions">
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>📋 Admission Applications</h2>
-            <div className="admission-app-card"><div className="app-info"><div className="app-name">Rahul Verma</div><div className="app-meta">Applied for Class 9 · Dec 3, 2026 · parent@email.com</div></div><div className="app-actions"><button className="btn-submit btn-sm" onClick={() => showToast('Application Approved!', 'success')}>✓ Approve</button><button className="btn-secondary btn-sm" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => showToast('Application rejected', '')}>✗ Reject</button></div></div>
-            <div className="admission-app-card"><div className="app-info"><div className="app-name">Ananya Singh</div><div className="app-meta">Applied for Class 6 · Dec 2, 2026 · mom@gmail.com</div></div><div className="app-actions"><button className="btn-submit btn-sm" onClick={() => showToast('Application Approved!', 'success')}>✓ Approve</button><button className="btn-secondary btn-sm" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => showToast('Application rejected', '')}>✗ Reject</button></div></div>
-            <div className="admission-app-card"><div className="app-info"><div className="app-name">Mohammed Ali</div><div className="app-meta">Applied for Class 11 Science · Nov 30, 2026 · dad@email.com</div></div><div className="app-actions"><button className="btn-submit btn-sm" onClick={() => showToast('Application Approved!', 'success')}>✓ Approve</button><button className="btn-secondary btn-sm" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => showToast('Application rejected', '')}>✗ Reject</button></div></div>
-            <div className="admission-app-card"><div className="app-info"><div className="app-name">Priya Patel</div><div className="app-meta">Applied for Class 1 · Nov 28, 2026 · priyapatel@gmail.com</div></div><div className="app-actions"><button className="btn-submit btn-sm" onClick={() => showToast('Application Approved!', 'success')}>✓ Approve</button><button className="btn-secondary btn-sm" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={() => showToast('Application rejected', '')}>✗ Reject</button></div></div>
-          </div>
-
-          {/* Notice Management */}
-          <div className="dash-section" id="adm-notices">
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>📣 Notice Management</h2>
-            <div className="card" style={{ maxWidth: '600px', marginBottom: '2rem' }}>
-              <div className="form-group"><label className="form-label">Notice Title</label><input className="form-input" placeholder="e.g., Winter Break Announcement" /></div>
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">Target Audience</label><select className="form-select"><option>All</option><option>Students Only</option><option>Parents Only</option><option>Teachers Only</option></select></div>
-                <div className="form-group"><label className="form-label">Category</label><select className="form-select"><option>General</option><option>Academic</option><option>Event</option><option>Urgent</option></select></div>
-              </div>
-              <div className="form-group"><label className="form-label">Notice Content</label><textarea className="form-textarea" placeholder="Write the notice content..."></textarea></div>
-              <button className="btn-submit" onClick={() => showToast('Notice published to all users!', 'success')}>Publish Notice 📣</button>
-            </div>
-            <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Recent Notices</h3>
-            <div className="announcements-list">
-              <div className="announcement-item"><span className="ann-badge badge-new">LIVE</span><div className="ann-content"><div className="ann-title">Winter Break: December 22 to January 5</div><div className="ann-meta">Published Dec 1, 2026 · All Users</div></div><button className="btn-secondary btn-sm" onClick={() => showToast('Notice deleted', '')}>Delete</button></div>
-              <div className="announcement-item"><span className="ann-badge badge-event">LIVE</span><div className="ann-content"><div className="ann-title">Annual Sports Day — December 15</div><div className="ann-meta">Published Nov 28, 2026 · All Users</div></div><button className="btn-secondary btn-sm" onClick={() => showToast('Notice deleted', '')}>Delete</button></div>
-            </div>
-          </div>
-
-          {/* Event Management */}
-          <div className="dash-section" id="adm-events">
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>📅 Event Management</h2>
-            <div className="event-form-card mb-3">
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">Event Name</label><input className="form-input" placeholder="e.g., Annual Science Fair" /></div>
-                <div className="form-group"><label className="form-label">Event Date</label><input className="form-input" type="date" /></div>
-              </div>
-              <div className="form-group"><label className="form-label">Description</label><textarea className="form-textarea" style={{ minHeight: '80px' }} placeholder="Event description..."></textarea></div>
-              <button className="btn-submit" onClick={() => showToast('Event added to calendar!', 'success')}>Add Event 📅</button>
-            </div>
-            <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Upcoming Events</h3>
-            <div className="upcoming-event-chip"><span className="event-chip-date">Dec 14</span><span className="event-chip-name">Parent-Teacher Meeting</span><span className="event-chip-badge">PTM</span><button className="btn-secondary btn-sm" onClick={() => showToast('Event removed', '')}>Remove</button></div>
-            <div className="upcoming-event-chip"><span className="event-chip-date">Dec 15</span><span className="event-chip-name">Annual Sports Day</span><span className="event-chip-badge">Sports</span><button className="btn-secondary btn-sm" onClick={() => showToast('Event removed', '')}>Remove</button></div>
-            <div className="upcoming-event-chip"><span className="event-chip-date">Dec 18</span><span className="event-chip-name">Science Fair 2024</span><span className="event-chip-badge">Academic</span><button className="btn-secondary btn-sm" onClick={() => showToast('Event removed', '')}>Remove</button></div>
-          </div>
-
-          {/* Gallery Management */}
-          <div className="dash-section" id="adm-gallery">
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>🖼️ Gallery Management</h2>
-            <div className="form-group" style={{ maxWidth: '400px' }}><label className="form-label">Category</label><select className="form-select"><option>Campus</option><option>Sports</option><option>Cultural Events</option><option>Functions</option></select></div>
-            <div className="gallery-upload-zone" onClick={() => showToast('Image upload ready for backend integration', '')}>
-              <div className="upload-icon">🖼️</div>
-              <div className="upload-text">Click to upload images</div>
-              <div className="upload-hint">JPG, PNG · Max 5MB each · Multiple selection supported</div>
-            </div>
-            <div className="mt-3">
-              <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Gallery Items</h3>
-              <div className="gallery-full-grid">
-                <div className="gallery-full-item"><div className="gallery-bg" style={{ background: 'linear-gradient(135deg,#1e3a8a,#0ea5e9)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '3rem' }}>🏫</span></div><div className="gallery-overlay" style={{ opacity: 1, background: 'rgba(0,0,0,0.5)' }}><button className="btn-secondary btn-sm" onClick={() => showToast('Image deleted', '')}>🗑 Delete</button></div></div>
-                <div className="gallery-full-item"><div className="gallery-bg" style={{ background: 'linear-gradient(135deg,#f59e0b,#ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '3rem' }}>⚽</span></div><div className="gallery-overlay" style={{ opacity: 1, background: 'rgba(0,0,0,0.5)' }}><button className="btn-secondary btn-sm" onClick={() => showToast('Image deleted', '')}>🗑 Delete</button></div></div>
-                <div className="gallery-full-item"><div className="gallery-bg" style={{ background: 'linear-gradient(135deg,#8b5cf6,#ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '3rem' }}>🎭</span></div><div className="gallery-overlay" style={{ opacity: 1, background: 'rgba(0,0,0,0.5)' }}><button className="btn-secondary btn-sm" onClick={() => showToast('Image deleted', '')}>🗑 Delete</button></div></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Settings */}
-          <div className="dash-section" id="adm-settings">
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>⚙️ System Settings</h2>
+          {/* MY PROFILE SECTION - Email input removed cleanly */}
+          <div className="dash-section" id="adm-profile">
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, marginBottom: '0.5rem' }}>👤 My Profile Details</h2>
+            <p className="text-muted mb-4" style={{ marginBottom: '1.5rem' }}>Manage your basic control panel contact records here.</p>
+            
             <div className="card" style={{ maxWidth: '600px' }}>
-              <div className="form-section-title">School Information</div>
-              <div className="form-group"><label className="form-label">School Name</label><input className="form-input" defaultValue="India Springs School of Excellence" /></div>
-              <div className="form-group"><label className="form-label">Principal Name</label><input className="form-input" defaultValue="Dr. Rajan Iyer" /></div>
-              <div className="form-group"><label className="form-label">Contact Email</label><input className="form-input" defaultValue="info@vidyalaya.edu.in" /></div>
-              <div className="form-group"><label className="form-label">Phone</label><input className="form-input" defaultValue="+91 80 1234 5678" /></div>
-              <div className="form-section-title">Academic Settings</div>
-              <div className="form-row">
-                <div className="form-group"><label className="form-label">Academic Year</label><input className="form-input" defaultValue="2025–26" /></div>
-                <div className="form-group"><label className="form-label">Current Term</label><select className="form-select"><option>Term 1</option><option defaultValue>Term 2</option></select></div>
-              </div>
-              <button className="btn-submit" onClick={() => showToast('Settings saved successfully!', 'success')}>Save Settings</button>
+              <form onSubmit={handleUpdateProfile}>
+                <div className="form-group" style={{ marginBottom: '1.2rem' }}>
+                  <label className="form-label">Admin Full Name</label>
+                  <input 
+                    className="form-input" 
+                    type="text" 
+                    name="fullName" 
+                    value={adminProfile.fullName} 
+                    onChange={handleProfileChange} 
+                    placeholder="Enter Admin Full Name"
+                    required 
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                  <label className="form-label">Contact Number (Phone)</label>
+                  <input 
+                    className="form-input" 
+                    type="tel" 
+                    name="contactNumber" 
+                    value={adminProfile.contactNumber} 
+                    onChange={handleProfileChange} 
+                    placeholder="Enter Phone Number"
+                    required 
+                  />
+                </div>
+
+                <button 
+                  type="submit" 
+                  className="btn-submit" 
+                  disabled={isUpdatingProfile}
+                >
+                  {isUpdatingProfile ? 'Saving Records...' : 'Save Profile Details Changes'}
+                </button>
+              </form>
             </div>
           </div>
+
+          {/* SYSTEM SETTINGS FALLBACK SECTION */}
+          <div className="dash-section" id="adm-settings">
+            <h2>⚙️ System Settings</h2>
+            <p>System configuration panels modules generic overview.</p>
+          </div>
+
+          {/* MODAL BLOCKS */}
+          {activeModal === 'student' && (
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, overflowY: 'auto', padding: '2rem 0' }}>
+              <div className="card" style={{ maxWidth: '750px', width: '90%', margin: 'auto', maxHeight: '90vh', overflowY: 'auto', position: 'relative', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem' }}>
+                  <h3 style={{ margin: 0, fontWeight: 900, fontSize: '1.4rem' }}>📝 Student Registration Form</h3>
+                  <button onClick={() => setActiveModal(null)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#999' }}>&times;</button>
+                </div>
+                <form onSubmit={handleStudentRegistration}>
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <h4 style={{ color: 'var(--primary)', borderBottom: '2px solid #f0f0f0', paddingBottom: '0.3rem', marginBottom: '1rem', fontWeight: 700 }}>1. Student Personal Information</h4>
+                    <div className="form-group" style={{ marginBottom: '1rem' }}>
+                      <label className="form-label">Student Full Name *</label>
+                      <input className="form-input" type="text" name="fullName" value={studentFormData.fullName} onChange={handleStudentChange} required placeholder="John Doe" />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div className="form-group">
+                        <label className="form-label">Date of Birth *</label>
+                        <input className="form-input" type="date" name="dob" value={studentFormData.dob} onChange={handleStudentChange} required />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Gender *</label>
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
+                            <input type="radio" name="gender" value="Male" checked={studentFormData.gender === 'Male'} onChange={handleStudentChange} required /> Male
+                          </label>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
+                            <input type="radio" name="gender" value="Female" checked={studentFormData.gender === 'Female'} onChange={handleStudentChange} /> Female
+                          </label>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
+                            <input type="radio" name="gender" value="Other" checked={studentFormData.gender === 'Other'} onChange={handleStudentChange} /> Other
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <h4 style={{ color: 'var(--primary)', borderBottom: '2px solid #f0f0f0', paddingBottom: '0.3rem', marginBottom: '1rem', fontWeight: 700 }}>2. Academic Information</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div className="form-group">
+                        <label className="form-label">Applying for Class *</label>
+                        <select className="form-select" name="className" value={studentFormData.className} onChange={handleStudentChange} required>
+                          <option value="">-- Select Class --</option>
+                          <option value="Class 6">Class 6th</option>
+                          <option value="Class 7">Class 7th</option>
+                          <option value="Class 8">Class 8th</option>
+                          <option value="Class 9">Class 9th</option>
+                          <option value="Class 10">Class 10th</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Section *</label>
+                        <input className="form-input" type="text" name="section" value={studentFormData.section} onChange={handleStudentChange} required placeholder="e.g., A" />
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div className="form-group">
+                        <label className="form-label">Roll Number (Unique Validation Key) *</label>
+                        <input className="form-input" type="text" name="rollNo" value={studentFormData.rollNo} onChange={handleStudentChange} required placeholder="e.g., VID2026001" />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Current Grade / Marks Level *</label>
+                        <input className="form-input" type="text" name="studentGrade" value={studentFormData.studentGrade} onChange={handleStudentChange} required placeholder="e.g., A+" />
+                      </div>
+                    </div>
+                    <div className="form-group" style={{ marginBottom: '1rem' }}>
+                      <label className="form-label">Previous School Name (If Any)</label>
+                      <input className="form-input" type="text" name="previousSchool" value={studentFormData.previousSchool} onChange={handleStudentChange} placeholder="e.g., Greenvalley International School" />
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <h4 style={{ color: 'var(--primary)', borderBottom: '2px solid #f0f0f0', paddingBottom: '0.3rem', marginBottom: '1rem', fontWeight: 700 }}>3. Parent / Guardian Information</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div className="form-group">
+                        <label className="form-label">Parent/Guardian Full Name *</label>
+                        <input className="form-input" type="text" name="parentName" value={studentFormData.parentName} onChange={handleStudentChange} required placeholder="Parent Name" />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Relationship *</label>
+                        <select className="form-select" name="relationship" value={studentFormData.relationship} onChange={handleStudentChange}>
+                          <option value="Father">Father</option>
+                          <option value="Mother">Mother</option>
+                          <option value="Guardian">Guardian</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div className="form-group">
+                        <label className="parent-label">Parent Email Address (Login Username) *</label>
+                        <input className="form-input" type="email" name="parentEmail" value={studentFormData.parentEmail} onChange={handleStudentChange} required placeholder="parent@example.com" />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Parent Phone Number *</label>
+                        <input className="form-input" type="tel" name="parentPhone" value={studentFormData.parentPhone} onChange={handleStudentChange} required placeholder="Contact Number" />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Residential Address *</label>
+                      <textarea className="form-input" name="address" rows="2" value={studentFormData.address} onChange={handleStudentChange} required placeholder="Complete home address..." style={{ resize: 'vertical' }}></textarea>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', borderTop: '1px solid #eee', paddingTop: '1rem' }}>
+                    <button type="button" className="btn-secondary" onClick={() => setActiveModal(null)} disabled={isSubmitting}>Cancel</button>
+                    <button type="submit" className="btn-submit" disabled={isSubmitting}>
+                      {isSubmitting ? 'Verifying & Saving...' : 'Submit Registration 🚀'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {activeModal === 'teacher' && (
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, overflowY: 'auto', padding: '2rem 0' }}>
+              <div className="card" style={{ maxWidth: '700px', width: '90%', margin: 'auto', maxHeight: '90vh', overflowY: 'auto', position: 'relative', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem' }}>
+                  <h3 style={{ margin: 0, fontWeight: 900, fontSize: '1.4rem' }}>📝 Add New Teacher Form</h3>
+                  <button onClick={() => setActiveModal(null)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#999' }}>&times;</button>
+                </div>
+                <form onSubmit={handleTeacherRegistration}>
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <h4 style={{ color: 'var(--secondary)', borderBottom: '2px solid #f0f0f0', paddingBottom: '0.3rem', marginBottom: '1rem', fontWeight: 700 }}>Teacher Assignment Details</h4>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label className="form-label">Teacher Full Name *</label>
+                        <input className="form-input" type="text" name="teacherName" value={teacherFormData.teacherName} onChange={handleTeacherChange} required placeholder="e.g., Priya Mehta" />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Employee ID (Unique Validation Key) *</label>
+                        <input className="form-input" type="text" name="employeeId" value={teacherFormData.employeeId} onChange={handleTeacherChange} required placeholder="e.g., EMP123" />
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
 
         </div>
       </div>

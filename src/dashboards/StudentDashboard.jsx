@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { getAuth, updatePassword } from 'firebase/auth'; // Ensure Firebase is initialized in your project
 import '../components/Sidebar.css';
 import './StudentDashboard.css';
 
@@ -30,6 +32,14 @@ const chatResponses = [
 ];
 
 export default function StudentDashboard({ navigate, showToast }) {
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Visibility toggle states
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   function switchDashSection(id, el) {
     document.querySelectorAll('#page-student-dashboard .dash-section').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
@@ -106,6 +116,49 @@ export default function StudentDashboard({ navigate, showToast }) {
     messages.scrollTop = messages.scrollHeight;
   }
 
+  // Firebase Password Update Handler
+  const handlePasswordUpdate = async (e) => {
+    e.preventDefault();
+    
+    if (!newPassword) {
+      showToast('Please enter a new password.', 'error');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      showToast('Passwords do not match!', 'error');
+      return;
+    }
+    if (newPassword.length < 6) {
+      showToast('Password should be at least 6 characters long.', 'error');
+      return;
+    }
+
+    setIsUpdating(true);
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (user) {
+      try {
+        await updatePassword(user, newPassword);
+        showToast('Password updated successfully!', 'success');
+        setNewPassword('');
+        setConfirmPassword('');
+      } catch (error) {
+        console.error(error);
+        if (error.code === 'auth/requires-recent-login') {
+          showToast('Please log out and log back in to perform this action.', 'error');
+        } else {
+          showToast(error.message, 'error');
+        }
+      } finally {
+        setIsUpdating(false);
+      }
+    } else {
+      showToast('No logged in user found.', 'error');
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div className="dashboard-page" id="page-student-dashboard">
       <aside className="sidebar">
@@ -122,6 +175,8 @@ export default function StudentDashboard({ navigate, showToast }) {
           <div className="sidebar-section-label">Resources</div>
           <div className="sidebar-item" onClick={(e) => switchDashSection('std-chat', e.currentTarget)}><span className="icon">💬</span>Chat Assistant</div>
           <div className="sidebar-item" onClick={(e) => switchDashSection('std-feedback', e.currentTarget)}><span className="icon">⭐</span>Feedback</div>
+          {/* Added My Profile Option */}
+          <div className="sidebar-item" onClick={(e) => switchDashSection('std-profile', e.currentTarget)}><span className="icon">👤</span>My Profile</div>
         </nav>
         <div className="sidebar-footer"><div className="sidebar-item" onClick={() => navigate('home')} style={{ color: 'rgba(255,100,100,0.8)' }}><span className="icon">🚪</span>Logout</div></div>
       </aside>
@@ -243,7 +298,7 @@ export default function StudentDashboard({ navigate, showToast }) {
               <div className="calendar-grid">
                 <div className="calendar-day other-month">24</div><div className="calendar-day other-month">25</div><div className="calendar-day other-month">26</div><div className="calendar-day other-month">27</div><div className="calendar-day other-month">28</div><div className="calendar-day other-month">29</div><div className="calendar-day other-month">30</div>
                 <div className="calendar-day other-month">1</div><div className="calendar-day">2</div><div className="calendar-day">3</div><div className="calendar-day">4</div><div className="calendar-day">5</div><div className="calendar-day">6</div><div className="calendar-day">7</div>
-                <div className="calendar-day">8</div><div className="calendar-day">9</div><div className="calendar-day">10</div><div className="calendar-day">11</div><div className="calendar-day">12</div><div className="calendar-day">13</div><div className="calendar-day has-event today">14</div>
+                <div className="calendar-day">8</div><div className="calendar-day">9</div><div className="calendar-day">10</div><div className="calendar-day">11</div><div className="calendar-day">12</div><div className="calendar-day">13</div><div className="calendar-day today has-event">14</div>
                 <div className="calendar-day has-event">15</div><div className="calendar-day">16</div><div className="calendar-day">17</div><div className="calendar-day has-event">18</div><div className="calendar-day">19</div><div className="calendar-day">20</div><div className="calendar-day">21</div>
                 <div className="calendar-day">22</div><div className="calendar-day">23</div><div className="calendar-day">24</div><div className="calendar-day">25</div><div className="calendar-day">26</div><div className="calendar-day">27</div><div className="calendar-day">28</div>
                 <div className="calendar-day">29</div><div className="calendar-day">30</div><div className="calendar-day">31</div>
@@ -285,6 +340,71 @@ export default function StudentDashboard({ navigate, showToast }) {
               </div>
               <div className="form-group"><label className="form-label">Your Feedback</label><textarea className="form-textarea" placeholder="Share your experience..."></textarea></div>
               <button className="btn-submit" onClick={() => showToast('Feedback submitted successfully! Thank you.', 'success')}>Submit Feedback</button>
+            </div>
+          </div>
+
+          {/* Added Student My Profile Container */}
+          <div className="dash-section" id="std-profile">
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>👤 My Profile Settings</h2>
+            <div className="card" style={{ maxWidth: '500px' }}>
+              <div style={{ marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem' }}>Account Information</h3>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.2rem 0' }}><strong>Name:</strong> Arjun Sharma</p>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.2rem 0' }}><strong>Role:</strong> Student (Class 10A)</p>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.2rem 0' }}><strong>Roll No:</strong> VID202042</p>
+              </div>
+
+              <form onSubmit={handlePasswordUpdate}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem' }}>Update Password</h3>
+                
+                <div className="form-group">
+                  <label className="form-label">New Password</label>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <input 
+                      type={showNewPassword ? "text" : "password"} 
+                      className="form-input" 
+                      style={{ paddingRight: '2.5rem', width: '100%' }}
+                      placeholder="Enter new password" 
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                    <span 
+                      style={{ position: 'absolute', right: '12px', cursor: 'pointer', userSelect: 'none', fontSize: '0.85rem', fontWeight: 'bold', color: '#64748b' }}
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? 'HIDE' : 'SHOW'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Confirm New Password</label>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <input 
+                      type={showConfirmPassword ? "text" : "password"} 
+                      className="form-input" 
+                      style={{ paddingRight: '2.5rem', width: '100%' }}
+                      placeholder="Confirm new password" 
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    <span 
+                      style={{ position: 'absolute', right: '12px', cursor: 'pointer', userSelect: 'none', fontSize: '0.85rem', fontWeight: 'bold', color: '#64748b' }}
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? 'HIDE' : 'SHOW'}
+                    </span>
+                  </div>
+                </div>
+
+                <button 
+                  type="submit" 
+                  className="btn-submit mt-2" 
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? 'Updating...' : 'Update Password 🔒'}
+                </button>
+              </form>
             </div>
           </div>
 

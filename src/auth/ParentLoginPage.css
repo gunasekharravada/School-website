@@ -107,7 +107,14 @@
   transition: all 0.2s;
   margin-top: 0.5rem;
 }
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
 
+.password-toggle-btn:hover {
+  color: #374151 !important; /* Makes the eye icon slightly darker when hovered */
+}
 .btn-auth:hover { box-shadow: 0 8px 24px rgba(30,58,138,0.35); transform: translateY(-1px); }
 
 .form-help { font-size: 0.78rem; color: var(--text-muted); margin-top: 1.2rem; text-align: center; }

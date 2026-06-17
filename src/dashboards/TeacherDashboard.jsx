@@ -1,13 +1,66 @@
+import { useState } from 'react';
+import { getAuth, updatePassword } from 'firebase/auth'; // Ensure Firebase is initialized in your project
 import '../components/Sidebar.css';
 import './TeacherDashboard.css';
 
 export default function TeacherDashboard({ navigate, showToast }) {
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+  
+  // States to track password visibility toggles
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   function switchDashSection(id, el) {
     document.querySelectorAll('#page-teacher-dashboard .dash-section').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     el.closest('.sidebar').querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
     el.classList.add('active');
   }
+
+  // Firebase Password Update Handler
+  const handlePasswordUpdate = async (e) => {
+    e.preventDefault();
+    
+    if (!newPassword) {
+      showToast('Please enter a new password.', 'error');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      showToast('Passwords do not match!', 'error');
+      return;
+    }
+    if (newPassword.length < 6) {
+      showToast('Password should be at least 6 characters long.', 'error');
+      return;
+    }
+
+    setIsUpdating(true);
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (user) {
+      try {
+        await updatePassword(user, newPassword);
+        showToast('Password updated successfully!', 'success');
+        setNewPassword('');
+        setConfirmPassword('');
+      } catch (error) {
+        console.error(error);
+        if (error.code === 'auth/requires-recent-login') {
+          showToast('Please log out and log back in to perform this action.', 'error');
+        } else {
+          showToast(error.message, 'error');
+        }
+      } finally {
+        setIsUpdating(false);
+      }
+    } else {
+      showToast('No logged in user found.', 'error');
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <div className="dashboard-page" id="page-teacher-dashboard">
@@ -23,6 +76,8 @@ export default function TeacherDashboard({ navigate, showToast }) {
           <div className="sidebar-item" onClick={(e) => switchDashSection('tch-announcements', e.currentTarget)}><span className="icon">📣</span>Announcements</div>
           <div className="sidebar-item" onClick={(e) => switchDashSection('tch-events', e.currentTarget)}><span className="icon">📅</span>Events</div>
           <div className="sidebar-item" onClick={(e) => switchDashSection('tch-feedback', e.currentTarget)}><span className="icon">⭐</span>Feedback</div>
+          {/* My Profile Section Link */}
+          <div className="sidebar-item" onClick={(e) => switchDashSection('tch-profile', e.currentTarget)}><span className="icon">👤</span>My Profile</div>
         </nav>
         <div className="sidebar-footer"><div className="sidebar-item" onClick={() => navigate('home')} style={{ color: 'rgba(255,100,100,0.8)' }}><span className="icon">🚪</span>Logout</div></div>
       </aside>
@@ -140,6 +195,70 @@ export default function TeacherDashboard({ navigate, showToast }) {
             <div className="announcements-list">
               <div className="announcement-item"><span className="ann-badge" style={{ background: '#fef3c7', color: '#b45309' }}>★★★★★</span><div className="ann-content"><div className="ann-title">Physics classes are incredibly engaging. Ms. Priya explains concepts with real-world examples.</div><div className="ann-meta">Anonymous Student · Class 10A · Dec 1, 2024</div></div></div>
               <div className="announcement-item"><span className="ann-badge" style={{ background: '#fef3c7', color: '#b45309' }}>★★★★☆</span><div className="ann-content"><div className="ann-title">Good teaching but would appreciate more practice problems before exams.</div><div className="ann-meta">Anonymous Student · Class 11A · Nov 28, 2024</div></div></div>
+            </div>
+          </div>
+
+          {/* My Profile Container with standard text hide/show icons */}
+          <div className="dash-section" id="tch-profile">
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>👤 My Profile Settings</h2>
+            <div className="card" style={{ maxWidth: '500px' }}>
+              <div style={{ marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem' }}>Account Information</h3>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.2rem 0' }}><strong>Name:</strong> Ms. Priya Mehta</p>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.2rem 0' }}><strong>Role:</strong> Senior Physics Teacher</p>
+              </div>
+
+              <form onSubmit={handlePasswordUpdate}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem' }}>Update Password</h3>
+                
+                <div className="form-group">
+                  <label className="form-label">New Password</label>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <input 
+                      type={showNewPassword ? "text" : "password"} 
+                      className="form-input" 
+                      style={{ paddingRight: '2.5rem', width: '100%' }}
+                      placeholder="Enter new password" 
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                    <span 
+                      style={{ position: 'absolute', right: '12px', cursor: 'pointer', userSelect: 'none', fontSize: '0.85rem', fontWeight: 'bold', color: '#64748b' }}
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? 'HIDE' : 'SHOW'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Confirm New Password</label>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <input 
+                      type={showConfirmPassword ? "text" : "password"} 
+                      className="form-input" 
+                      style={{ paddingRight: '2.5rem', width: '100%' }}
+                      placeholder="Confirm new password" 
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    <span 
+                      style={{ position: 'absolute', right: '12px', cursor: 'pointer', userSelect: 'none', fontSize: '0.85rem', fontWeight: 'bold', color: '#64748b' }}
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? 'HIDE' : 'SHOW'}
+                    </span>
+                  </div>
+                </div>
+
+                <button 
+                  type="submit" 
+                  className="btn-submit mt-2" 
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? 'Updating...' : 'Update Password 🔒'}
+                </button>
+              </form>
             </div>
           </div>
 

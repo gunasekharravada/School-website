@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import AuthLayout from './AuthLayout';
 import './AdminLoginPage.css';
 
-// 1. Import auth from your firebase config file and the sign-in function from SDK
-import { auth } from '../firebase/firebaseconfig'; 
+// 1. Import auth and db from your firebase config file
+import { auth, db } from '../firebase/firebaseconfig'; 
 import { signInWithEmailAndPassword } from 'firebase/auth';
+// Import the necessary Firestore SDK methods
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function AdminLoginPage({ navigate, showToast }) {
   // 2. Set up local state to capture input values
@@ -12,7 +14,7 @@ export default function AdminLoginPage({ navigate, showToast }) {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // 3. Handle Firebase Authentication on submit
+  // 3. Handle Firebase Authentication and Firestore Initialization on submit
   async function handleLogin(e) {
     e.preventDefault();
 
@@ -24,9 +26,27 @@ export default function AdminLoginPage({ navigate, showToast }) {
     setIsLoading(true);
 
     try {
-      // Send credentials to Firebase
-      await signInWithEmailAndPassword(auth, email, password);
+      // 1. Authenticate credentials against Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user; // This gives us the unique user UID
       
+      // 2. Reference the admin document using the unique UID
+      const adminDocRef = doc(db, 'admins', user.uid);
+      const adminDocSnap = await getDoc(adminDocRef);
+
+      // 3. Check if the admin details already exist in Cloud Firestore
+      if (!adminDocSnap.exists()) {
+        // If the document doesn't exist, create it with placeholder info
+        await setDoc(adminDocRef, {
+          fullName: 'Indian Spring School Admin', // Default fallback name
+          email: user.email,                      // Admin email from auth
+          contactNumber: 'Not Added',              // Placeholder contact number
+          role: 'ADMIN',                          // Enforcing the role
+          createdAt: serverTimestamp()            // Track account initialization
+        });
+        console.log("New admin record initialized in Firestore!");
+      }
+
       if (showToast) showToast('Welcome back, Administrator!', 'success');
       navigate('admin-dashboard'); // Redirect to dashboard on success
     } catch (error) {
@@ -60,7 +80,6 @@ export default function AdminLoginPage({ navigate, showToast }) {
         <h2 className="auth-title">Admin Login</h2>
         <p className="auth-subtitle">Central control panel for school management.</p>
         
-        {/* Wrap inputs in a form component to support pressing "Enter" to submit */}
         <form onSubmit={handleLogin}>
           <div className="form-group">
             <label className="form-label">Admin Email</label>

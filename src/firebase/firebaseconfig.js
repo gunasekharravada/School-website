@@ -1,9 +1,12 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
+// 1. Import getFirestore from the Firestore SDK
+import { getFirestore } from 'firebase/firestore';
 
 // Your Firebase configuration object
 const firebaseConfig = {
-apiKey: "AIzaSyCfM7Bkzxs1iZ8XIddgXRoytbZqAS00fLc",
+  
+  apiKey: "AIzaSyCfM7Bkzxs1iZ8XIddgXRoytbZqAS00fLc",
   authDomain: "vidayalaya-8fbf7.firebaseapp.com",
   projectId: "vidayalaya-8fbf7",
   storageBucket: "vidayalaya-8fbf7.firebasestorage.app",
@@ -18,6 +21,9 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase Auth
 const auth = getAuth(app);
 
+// 2. Initialize Firestore Database
+const db = getFirestore(app);
+
 // Enable local persistence so Admin stays logged in on reload/tab close
 setPersistence(auth, browserLocalPersistence)
   .then(() => {
@@ -27,4 +33,5 @@ setPersistence(auth, browserLocalPersistence)
     console.error("Error setting auth persistence:", error);
   });
 
-export { app, auth };
+// 3. Export db alongside app and auth
+export { app, auth, db };
