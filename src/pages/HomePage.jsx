@@ -1,6 +1,95 @@
+import React, { useEffect, useState } from 'react';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { db } from '../firebase/firebaseconfig'; 
 import './HomePage.css';
-import {FaFacebook,FaWhatsapp,FaYoutube,FaEnvelope}from "react-icons/fa";
+import { FaFacebook, FaWhatsapp, FaYoutube, FaEnvelope, FaMapMarkedAlt, FaClock, FaPhoneAlt } from "react-icons/fa";
+import cultural from '../images/cultural.jpeg';
+import library from '../images/library.jpeg';
+import sciencefair from '../images/sciencefair.jpeg';
+import sports from '../images/sports.jpeg';
+import dances from '../images/dances.jpeg'; // Added the 5th image import
+
 export default function HomePage({ navigate, showToast }) {
+  const [announcements, setAnnouncements] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+
+  useEffect(() => {
+    // Fetch Latest Announcements
+    const fetchAnnouncements = async () => {
+      try {
+        const noticesRef = collection(db, 'notices');
+        const q = query(noticesRef, orderBy('createdAt', 'desc'), limit(5));
+        const querySnapshot = await getDocs(q);
+        
+        const fetchedNotices = [];
+        querySnapshot.forEach((doc) => {
+          fetchedNotices.push({ id: doc.id, ...doc.data() });
+        });
+        
+        if (fetchedNotices.length > 0) {
+          setAnnouncements(fetchedNotices);
+        }
+      } catch (error) {
+        console.error("Error fetching announcements: ", error);
+      } finally {
+        setLoadingAnnouncements(false);
+      }
+    };
+
+    // Fetch Upcoming Events dynamically from 'events' collection
+    const fetchEvents = async () => {
+      try {
+        const eventsRef = collection(db, 'events');
+        const q = query(eventsRef, orderBy('date', 'asc'), limit(3));
+        const querySnapshot = await getDocs(q);
+        
+        const fetchedEvents = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          
+          let day = "15";
+          let month = "Dec";
+          if (data.date) {
+            const dateObj = data.date.toDate ? data.date.toDate() : new Date(data.date);
+            day = dateObj.getDate();
+            month = dateObj.toLocaleString('en-US', { month: 'short' });
+          }
+
+          fetchedEvents.push({
+            id: doc.id,
+            day: day,
+            month: month,
+            tag: data.tag || 'Event',
+            title: data.title || 'Untitled Event',
+            desc: data.desc || 'No description provided.'
+          });
+        });
+        
+        if (fetchedEvents.length > 0) {
+          setEvents(fetchedEvents);
+        }
+      } catch (error) {
+        console.error("Error fetching events: ", error);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+
+    fetchAnnouncements();
+    fetchEvents();
+  }, []);
+
+  const getBadgeClass = (type) => {
+    switch(type?.toLowerCase()) {
+      case 'new': return 'badge-new';
+      case 'event': return 'badge-event';
+      case 'notice': return 'badge-notice';
+      default: return 'badge-notice';
+    }
+  };
+
   return (
     <div className="page active" id="page-home">
       {/* Hero */}
@@ -8,7 +97,7 @@ export default function HomePage({ navigate, showToast }) {
         <div className="hero-content">
           <div className="hero-text">
             <div className="hero-badge">🏆 Ranked #1 School in the District</div>
-            <h1 className="hero-title">Indian <span className="accent-text">Springs</span>  School</h1>
+            <h1 className="hero-title">Indian <span className="accent-text">Springs</span> School</h1>
             <p className="hero-subtitle">A comprehensive digital learning platform for students, teachers, and parents. Access Study materials, take quizzes and more from Class 6 to Class 10 students.</p>
             <div className="hero-actions">
               <button className="btn-primary" onClick={() => navigate('admission')}>Apply for Admission ✦</button>
@@ -37,10 +126,9 @@ export default function HomePage({ navigate, showToast }) {
             <p className="section-sub">Decades of excellence reflected in our students' achievements and institutional milestones.</p>
           </div>
           <div className="achievements-grid">
-            <div className="achievement-card"><div className="ach-icon">🏆</div><div className="ach-number">48</div><div className="ach-label">State Awards Won</div></div>
-            <div className="achievement-card"><div className="ach-icon">🎓</div><div className="ach-number">15,000+</div><div className="ach-label">Alumni Worldwide</div></div>
-            <div className="achievement-card"><div className="ach-icon">🔬</div><div className="ach-number">12</div><div className="ach-label">Labs &amp; Innovation Hubs</div></div>
-            <div className="achievement-card"><div className="ach-icon">⚽</div><div className="ach-number">200+</div><div className="ach-label">Sports Trophies</div></div>
+            <div className="achievement-card"><div className="ach-icon">🎓</div><div className="ach-number">5,000+</div><div className="ach-label">Alumni Worldwide</div></div>
+            <div className="achievement-card"><div className="ach-icon">🔬</div><div className="ach-number">10</div><div className="ach-label">Labs &amp; Innovation Hubs</div></div>
+            <div className="achievement-card"><div className="ach-icon">⚽</div><div className="ach-number">100+</div><div className="ach-label">Sports Trophies</div></div>
             <div className="achievement-card"><div className="ach-icon">🌍</div><div className="ach-number">90%</div><div className="ach-label">Board Exam Pass Rate</div></div>
           </div>
         </div>
@@ -54,11 +142,28 @@ export default function HomePage({ navigate, showToast }) {
             <h2 className="section-title">Latest Announcements</h2>
           </div>
           <div className="announcements-list">
-            <div className="announcement-item"><span className="ann-badge badge-new">NEW</span><div className="ann-content"><div className="ann-title">Admissions Open for 2026–27 Academic Year</div><div className="ann-meta">Posted on June 12, 2026 · Administration</div></div></div>
-            <div className="announcement-item"><span className="ann-badge badge-event">EVENT</span><div className="ann-content"><div className="ann-title">Annual Science Fair — Register by December 10</div><div className="ann-meta">Posted on November 28, 2026 · Science Department</div></div></div>
-            <div className="announcement-item"><span className="ann-badge badge-notice">NOTICE</span><div className="ann-content"><div className="ann-title">Winter Break: December 22 to January 5</div><div className="ann-meta">Posted on November 25, 2026 · Academic Office</div></div></div>
-            <div className="announcement-item"><span className="ann-badge badge-event">EVENT</span><div className="ann-content"><div className="ann-title">Parent-Teacher Meeting — December 14, 2026</div><div className="ann-meta">Posted on November 22, 2026 · Principal's Office</div></div></div>
-            <div className="announcement-item"><span className="ann-badge badge-new">NEW</span><div className="ann-content"><div className="ann-title">Smart Classroom Inauguration — Block C Ready</div><div className="ann-meta">Posted on November 20, 2026 · Facilities</div></div></div>
+            {loadingAnnouncements ? (
+              <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>Loading live announcements...</div>
+            ) : announcements.length > 0 ? (
+              announcements.map((ann) => (
+                <div className="announcement-item" key={ann.id}>
+                  <span className={`ann-badge ${getBadgeClass(ann.type || 'NEW')}`}>
+                    {(ann.type || 'NEW').toUpperCase()}
+                  </span>
+                  <div className="ann-content">
+                    <div className="ann-title">{ann.title}</div>
+                    <div className="ann-meta">
+                      Posted on {ann.postedDate || 'Recent'} · {ann.category || 'Administration'}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <>
+                <div className="announcement-item"><span className="ann-badge badge-new">NEW</span><div className="ann-content"><div className="ann-title">Admissions Open for 2026–27 Academic Year</div><div className="ann-meta">Posted on June 12, 2026 · Administration</div></div></div>
+                <div className="announcement-item"><span className="ann-badge badge-event">EVENT</span><div className="ann-content"><div className="ann-title">Annual Science Fair — Register by December 10</div><div className="ann-meta">Posted on November 28, 2026 · Science Department</div></div></div>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -71,9 +176,30 @@ export default function HomePage({ navigate, showToast }) {
             <h2 className="section-title">Upcoming Events</h2>
           </div>
           <div className="events-grid">
-            <div className="event-card"><div className="event-date-bar"><div><div className="event-day">14</div><div className="event-month">Dec</div></div><span>Parent-Teacher Meeting</span></div><div className="event-info"><div className="event-title">Semester Progress Review</div><div className="event-desc">Individual meetings with all class teachers from 9 AM – 2 PM</div></div></div>
-            <div className="event-card"><div className="event-date-bar"><div><div className="event-day">15</div><div className="event-month">Dec</div></div><span>Annual Sports Day</span></div><div className="event-info"><div className="event-title">Athletic Meet 2026</div><div className="event-desc">Track events, team sports, and cultural performances. All students participate.</div></div></div>
-            <div className="event-card"><div className="event-date-bar"><div><div className="event-day">18</div><div className="event-month">Dec</div></div><span>Science Fair</span></div><div className="event-info"><div className="event-title">Innovate &amp; Inspire 2026</div><div className="event-desc">Student project presentations judged by external panel of educators.</div></div></div>
+            {loadingEvents ? (
+              <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280', width: '100%' }}>Loading live calendar...</div>
+            ) : events.length > 0 ? (
+              events.map((ev) => (
+                <div className="event-card" key={ev.id}>
+                  <div className="event-date-bar">
+                    <div>
+                      <div className="event-day">{ev.day}</div>
+                      <div className="event-month">{ev.month}</div>
+                    </div>
+                    <span>{ev.tag}</span>
+                  </div>
+                  <div className="event-info">
+                    <div className="event-title">{ev.title}</div>
+                    <div className="event-desc">{ev.desc}</div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <>
+                <div className="event-card"><div className="event-date-bar"><div><div className="event-day">14</div><div className="event-month">Dec</div></div><span>PTM</span></div><div className="event-info"><div className="event-title">Semester Progress Review</div><div className="event-desc">Individual meetings with all class teachers from 9 AM – 2 PM</div></div></div>
+                <div className="event-card"><div className="event-date-bar"><div><div className="event-day">15</div><div className="event-month">Dec</div></div><span>Sports</span></div><div className="event-info"><div className="event-title">Athletic Meet 2026</div><div className="event-desc">Track events, team sports, and cultural performances. All students participate.</div></div></div>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -93,7 +219,7 @@ export default function HomePage({ navigate, showToast }) {
         </div>
       </section>
 
-      {/* Gallery Preview */}
+      {/* Aesthetic Gallery Preview */}
       <section className="section section-alt">
         <div className="container">
           <div className="section-header">
@@ -101,11 +227,12 @@ export default function HomePage({ navigate, showToast }) {
             <h2 className="section-title">Gallery Preview</h2>
           </div>
           <div className="gallery-grid">
-            <div className="gallery-item"><div className="gallery-bg" style={{ background: 'linear-gradient(135deg,#1e3a8a,#0ea5e9)' }}>🏫</div><div className="gallery-overlay">Campus View</div></div>
-            <div className="gallery-item"><div className="gallery-bg" style={{ background: 'linear-gradient(135deg,#f59e0b,#ef4444)' }}>⚽</div><div className="gallery-overlay">Sports Day</div></div>
-            <div className="gallery-item"><div className="gallery-bg" style={{ background: 'linear-gradient(135deg,#10b981,#0ea5e9)' }}>🔬</div><div className="gallery-overlay">Science Fair</div></div>
-            <div className="gallery-item"><div className="gallery-bg" style={{ background: 'linear-gradient(135deg,#8b5cf6,#ec4899)' }}>🎭</div><div className="gallery-overlay">Cultural Events</div></div>
-            <div className="gallery-item"><div className="gallery-bg" style={{ background: 'linear-gradient(135deg,#f59e0b,#10b981)' }}>📚</div><div className="gallery-overlay">Library</div></div>
+            <div className="gallery-item"><div className="gallery-bg"><img src={sports} alt="Sports Day" className="gallery-img" /></div><div className="gallery-overlay">Sports Day</div></div>
+            <div className="gallery-item"><div className="gallery-bg"><img src={sciencefair} alt="Science Fair" className="gallery-img" /></div><div className="gallery-overlay">Science Fair</div></div>
+            <div className="gallery-item"><div className="gallery-bg"><img src={cultural} alt="Cultural Events" className="gallery-img" /></div><div className="gallery-overlay">Cultural Events</div></div>
+            <div className="gallery-item"><div className="gallery-bg"><img src={library} alt="Library" className="gallery-img" /></div><div className="gallery-overlay">Library</div></div>
+            {/* Newly added 5th image box element */}
+            <div className="gallery-item"><div className="gallery-bg"><img src={dances} alt="Dance Performances" className="gallery-img" /></div><div className="gallery-overlay">Dance Performances</div></div>
           </div>
           <div style={{ textAlign: 'center', marginTop: '2rem' }}>
             <button className="btn-submit" onClick={() => navigate('gallery')}>View Full Gallery →</button>
@@ -149,10 +276,10 @@ export default function HomePage({ navigate, showToast }) {
             </div>
             <div>
               <div className="footer-col-title">Contact</div>
-              <div className="footer-contact-item"><span>📍</span><span>NRI S INDIAN SPRINGS SCHOOL, Lakshminagar, Visakhapatnam,Andhra Pradesh 531173</span></div>
-              <div className="footer-contact-item"><span>📞</span><span>+91 8977044167</span></div>
-              <div className="footer-contact-item"><span>✉️</span><span>info@indianspringsschool.edu.in</span></div>
-              <div className="footer-contact-item"><span>🕐</span><span>Mon–Sat: 8:00 AM – 4:00 PM</span></div>
+              <div className="footer-contact-item"><span><FaMapMarkedAlt/></span><span>NRI S INDIAN SPRINGS SCHOOL, Lakshminagar, Visakhapatnam,Andhra Pradesh 531173</span></div>
+              <div className="footer-contact-item"><span><FaPhoneAlt/></span><span>+91 8977044167</span></div>
+              <div className="footer-contact-item"><span><FaEnvelope/></span><span>info@indianspringsschool.edu.in</span></div>
+              <div className="footer-contact-item"><span><FaClock/></span><span>Mon–Sat: 8:00 AM – 4:00 PM</span></div>
             </div>
           </div>
           <div className="footer-bottom">
