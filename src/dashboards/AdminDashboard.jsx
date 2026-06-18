@@ -57,12 +57,10 @@ export default function AdminDashboard({ navigate, showToast }) {
   });
   const [noticeFormData, setNoticeFormData] = useState({ title: '', target: 'All', content: '' });
   const [eventFormData, setEventFormData] = useState({ title: '', date: '', description: '' });
-
   // Custom configuration targets for the classes summary logic
   const [classRequirements, setClassRequirements] = useState({
     '6': 30, '7': 25, '8': 20, '9': 15, '10': 20
   });
-
   // Load All Core Management Tracking Logs & Firebase Initializers
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -135,7 +133,6 @@ export default function AdminDashboard({ navigate, showToast }) {
         const gallerySnap = await getDocs(collection(db, 'gallery')).catch(() => ({forEach:()=>{}}));
         const galleryList = []; gallerySnap.forEach(d => galleryList.push({ id: d.id, ...d.data() }));
         setGalleryItems(galleryList);
-
         const settingsSnap = await getDoc(doc(db, 'settings', 'academic')).catch(() => null);
         if (settingsSnap && settingsSnap.exists()) {
           setAcademicSettings(settingsSnap.data());
@@ -192,7 +189,6 @@ export default function AdminDashboard({ navigate, showToast }) {
       setIsSavingSettings(false);
     }
   };
-
   const handleSaveAcademicSettings = async (e) => {
     e.preventDefault();
     setIsSavingSettings(true);
@@ -205,7 +201,6 @@ export default function AdminDashboard({ navigate, showToast }) {
       setIsSavingSettings(false);
     }
   };
-
   // Student Profile Modification Handler (Inline Edit Save)
   const handleSaveStudentEdit = async (e) => {
     e.preventDefault();
@@ -299,7 +294,6 @@ export default function AdminDashboard({ navigate, showToast }) {
       showToast(error.message, 'danger');
     }
   };
-
   const handleRejectAdmission = (appId) => {
     const updatedApps = admissions.filter(item => item.id !== appId);
     localStorage.setItem('schoolApplications', JSON.stringify(updatedApps));
@@ -317,7 +311,6 @@ export default function AdminDashboard({ navigate, showToast }) {
       showToast("Purge execution error.", 'danger');
     }
   };
-
   // Student Direct Registration Submission Logic
   const handleStudentRegistration = async (e) => {
     e.preventDefault();
@@ -347,7 +340,6 @@ export default function AdminDashboard({ navigate, showToast }) {
       setIsSubmitting(false);
     }
   };
-
   // Teacher Direct Registration Submission Logic
   const handleTeacherRegistration = async (e) => {
     e.preventDefault();
@@ -376,7 +368,6 @@ export default function AdminDashboard({ navigate, showToast }) {
       setIsSubmitting(false);
     }
   };
-
   const handleDeleteItem = async (collectionName, id, stateSetter) => {
     if(!window.confirm("Delete this entry permanently from the database?")) return;
     try {
@@ -385,7 +376,6 @@ export default function AdminDashboard({ navigate, showToast }) {
       showToast('Item removed successfully.', 'success');
     } catch { showToast('Failed deletion process.', 'danger'); }
   };
-
   async function handleLogout() {
     try { await signOut(auth); showToast('Logged out.', 'success'); navigate('home');
     } catch { showToast('Error logging out.', 'danger'); }
@@ -404,7 +394,6 @@ export default function AdminDashboard({ navigate, showToast }) {
       showToast('Profile saved!', 'success');
     } catch { showToast('Update error.', 'danger'); } finally { setIsUpdatingProfile(false); }
   };
-
   // Add Dynamic Content: Publish Notice Submission Handler
   const handlePublishNotice = async (e) => {
     e.preventDefault();
@@ -430,7 +419,6 @@ export default function AdminDashboard({ navigate, showToast }) {
       setIsSubmitting(false);
     }
   };
-
   // Add Dynamic Content: Event Creation Handler
   const handleAddEvent = async (e) => {
     e.preventDefault();
@@ -456,7 +444,6 @@ export default function AdminDashboard({ navigate, showToast }) {
       setIsSubmitting(false);
     }
   };
-
   function switchDashSection(id, el) {
     const sections = document.querySelectorAll('#page-admin-dashboard .dash-section');
     sections.forEach(s => s.classList.remove('active'));
@@ -486,10 +473,8 @@ export default function AdminDashboard({ navigate, showToast }) {
     const matchesClass = teacherClassFilter === '' ? true : tc.classes.toLowerCase().includes(teacherClassFilter.toLowerCase());
     return matchesSearch && matchesClass;
   });
-
   // Dynamically calculate actual class allocations metric loops
   const classMatrixKeys = ['6', '7', '8', '9', '10'];
-
   return (
     <div className="dashboard-page" id="page-admin-dashboard">
       <aside className="sidebar">
@@ -671,8 +656,8 @@ export default function AdminDashboard({ navigate, showToast }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <h2>🎓 Student Profiles</h2>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <input type="text" placeholder="🔍 Search name/roll no..." className="form-input" style={{ width: '200px', margin: 0, padding: '0.4rem' }} value={studentSearch} onChange={e => setStudentSearch(e.target.value)} />
-                <select className="form-select" style={{ width: '130px', margin: 0, padding: '0.4rem' }} value={studentClassFilter} onChange={e => setStudentClassFilter(e.target.value)}>
+                <input className="form-input" style={{ width: '200px', margin: 0 }} type="text" placeholder="🔍 Search student name/roll..." value={studentSearch} onChange={e => setStudentSearch(e.target.value)} />
+                <select className="form-select" style={{ width: '130px', margin: 0 }} value={studentClassFilter} onChange={e => setStudentClassFilter(e.target.value)}>
                   <option value="">All Classes</option>
                   <option value="6">Class 6</option>
                   <option value="7">Class 7</option>
@@ -687,9 +672,7 @@ export default function AdminDashboard({ navigate, showToast }) {
               <thead><tr><th>Name</th><th>Class/Sec</th><th>Roll No</th><th>Status</th><th style={{ textAlign: 'center' }}>Actions</th></tr></thead>
               <tbody>
                 {filteredStudents.map(st => (
-                  <tr key={st.id} onClick={() => { 
-                    setSelectedStudent(st); setEditStudentData({ name: st.name, class: st.class, section: st.section, rollNo: st.rollNo });
-                  }} style={{ cursor: 'pointer' }}>
+                  <tr key={st.id} onClick={() => { setSelectedStudent(st); setEditStudentData({ name: st.name, class: st.class, section: st.section, rollNo: st.rollNo }); }} style={{ cursor: 'pointer' }}>
                     <td><strong>{st.name}</strong></td>
                     <td>Class {st.class} ({st.section})</td>
                     <td>{st.rollNo}</td>
@@ -703,7 +686,6 @@ export default function AdminDashboard({ navigate, showToast }) {
                     </td>
                   </tr>
                 ))}
-                {filteredStudents.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center', padding: '1.5rem' }}>No student records found matching the query.</td></tr>}
               </tbody>
             </table>
           </div>
@@ -711,14 +693,15 @@ export default function AdminDashboard({ navigate, showToast }) {
           {/* TEACHER MANAGEMENT */}
           <div className="dash-section" id="adm-teachers">
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-              <h2>👩‍🏫 Faculty Rosters</h2>
+              <h2>👩‍🏫 Faculty Assignment Roster</h2>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <input type="text" placeholder="🔍 Search name/ID..." className="form-input" style={{ width: '200px', margin: 0, padding: '0.4rem' }} value={teacherSearch} onChange={e => setTeacherSearch(e.target.value)} />
+                <input className="form-input" style={{ width: '200px', margin: 0 }} type="text" placeholder="🔍 Search faculty/ID..." value={teacherSearch} onChange={e => setTeacherSearch(e.target.value)} />
+                <input className="form-input" style={{ width: '130px', margin: 0 }} type="text" placeholder="Class Filter..." value={teacherClassFilter} onChange={e => setTeacherClassFilter(e.target.value)} />
                 <button className="btn-submit btn-sm" style={{ whiteSpace: 'nowrap' }} onClick={() => setActiveModal('teacher')}>+ Assign Faculty</button>
               </div>
             </div>
             <table className="data-table">
-              <thead><tr><th>Name</th><th>ID</th><th>Subjects</th><th>Classes</th><th>Status</th><th style={{ textAlign: 'center' }}>Actions</th></tr></thead>
+              <thead><tr><th>Faculty Name</th><th>Employee ID</th><th>Subjects Expertise</th><th>Portfolios</th><th>Status</th><th style={{ textAlign: 'center' }}>Actions</th></tr></thead>
               <tbody>
                 {filteredTeachers.map(tc => (
                   <tr key={tc.id} onClick={() => { setSelectedTeacher(tc); setEditTeacherData({ name: tc.name, employeeId: tc.employeeId, subjects: tc.subjects, classes: tc.classes }); }} style={{ cursor: 'pointer' }}>
@@ -743,7 +726,6 @@ export default function AdminDashboard({ navigate, showToast }) {
           {/* NOTICE BOARD SECTION */}
           <div className="dash-section" id="adm-notices">
             <h2 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>📢 Notice Management</h2>
-            
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'start' }}>
               <div className="card shadow-sm">
                 <h3 style={{ marginBottom: '1rem', fontWeight: 700 }}>Deploy Public Board Notice</h3>
@@ -767,18 +749,19 @@ export default function AdminDashboard({ navigate, showToast }) {
                   <button type="submit" className="btn-submit" disabled={isSubmitting}>Publish Notice Object</button>
                 </form>
               </div>
-
               <div className="card shadow-sm">
-                <h3 style={{ marginBottom: '1rem', fontWeight: 700 }}>Recently Deployed Notices</h3>
+                <h3 style={{ marginBottom: '1rem', fontWeight: 700 }}>Live Bulletin Stream</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '420px', overflowY: 'auto' }}>
-                  {notices.length > 0 ? notices.map(n => (
-                    <div key={n.id} style={{ padding: '1rem', background: '#f8fafc', borderLeft: '4px solid #0ea5e9', borderRadius: '4px', position: 'relative' }}>
-                      <button onClick={() => handleDeleteItem('notices', n.id, setNotices)} style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
-                      <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '1rem' }}>{n.title}</h4>
-                      <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', color: '#4b5563' }}>{n.content}</p>
-                      <small style={{ color: '#9ca3af', display: 'block' }}>Scope: <strong>{n.target}</strong></small>
-                    </div>
-                  )) : <div style={{ color: '#9ca3af', textAlign: 'center', padding: '2rem' }}>No published announcements deployed yet.</div>}
+                  {notices.length > 0 ?
+                    notices.map(n => (
+                      <div key={n.id} style={{ padding: '1rem', background: '#f8fafc', borderLeft: '4px solid #0ea5e9', borderRadius: '4px', position: 'relative' }}>
+                        <button onClick={() => handleDeleteItem('notices', n.id, setNotices)} style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+                        <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '1rem' }}>{n.title}</h4>
+                        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', color: '#4b5563' }}>{n.content}</p>
+                        <small style={{ color: '#6b7280', fontWeight: 'bold' }}>Target Group Scope: {n.target || 'All'}</small>
+                      </div>
+                    )) : <div style={{ color: '#9ca3af', textAlign: 'center', padding: '2rem' }}>No bulletins published to stream indexes.</div>
+                  }
                 </div>
               </div>
             </div>
@@ -786,15 +769,14 @@ export default function AdminDashboard({ navigate, showToast }) {
 
           {/* EVENT MANAGEMENT SECTION */}
           <div className="dash-section" id="adm-events">
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>📅 Event Management</h2>
-            
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>📅 Event Calendar Workspace</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'start' }}>
               <div className="card shadow-sm">
-                <h3 style={{ marginBottom: '1rem', fontWeight: 700 }}>Append New Calendar Entry</h3>
+                <h3 style={{ marginBottom: '1rem', fontWeight: 700 }}>Schedule New Institutional Calendar Event</h3>
                 <form onSubmit={handleAddEvent}>
                   <div className="form-group" style={{ marginBottom: '1rem' }}>
-                    <label className="form-label">Event Name</label>
-                    <input className="form-input" type="text" placeholder="e.g., Annual Sports Track Gala Meet" value={eventFormData.title} onChange={e => setEventFormData({ ...eventFormData, title: e.target.value })} required />
+                    <label className="form-label">Event Heading Identifier</label>
+                    <input className="form-input" type="text" placeholder="e.g., Annual Sports Meet Day 2026" value={eventFormData.title} onChange={e => setEventFormData({ ...eventFormData, title: e.target.value })} required />
                   </div>
                   <div className="form-group" style={{ marginBottom: '1rem' }}>
                     <label className="form-label">Scheduled Target Date</label>
@@ -807,70 +789,62 @@ export default function AdminDashboard({ navigate, showToast }) {
                   <button type="submit" className="btn-submit" disabled={isSubmitting}>Add Event Framework</button>
                 </form>
               </div>
-
               <div className="card shadow-sm">
                 <h3 style={{ marginBottom: '1rem', fontWeight: 700 }}>Upcoming Events</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '420px', overflowY: 'auto' }}>
-                  {events.length > 0 ? events.map(ev => (
-                    <div key={ev.id} style={{ padding: '1rem', background: '#f8fafc', borderLeft: '4px solid #10b981', borderRadius: '4px', position: 'relative' }}>
-                      <button onClick={() => handleDeleteItem('events', ev.id, setEvents)} style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
-                      <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '1rem' }}>{ev.title}</h4>
-                      {ev.description && <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', color: '#4b5563' }}>{ev.description}</p>}
-                      <small style={{ color: '#6b7280', fontWeight: 'bold' }}>Scheduled execution: {ev.date}</small>
-                    </div>
-                  )) : <div style={{ color: '#9ca3af', textAlign: 'center', padding: '2rem' }}>No tracking events appended yet.</div>}
+                  {events.length > 0 ?
+                    events.map(ev => (
+                      <div key={ev.id} style={{ padding: '1rem', background: '#f8fafc', borderLeft: '4px solid #10b981', borderRadius: '4px', position: 'relative' }}>
+                        <button onClick={() => handleDeleteItem('events', ev.id, setEvents)} style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+                        <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '1rem' }}>{ev.title}</h4>
+                        {ev.description && <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', color: '#4b5563' }}>{ev.description}</p>}
+                        <small style={{ color: '#6b7280', fontWeight: 'bold' }}>Scheduled execution: {ev.date}</small>
+                      </div>
+                    )) : <div style={{ color: '#9ca3af', textAlign: 'center', padding: '2rem' }}>No events booked into calendar loops.</div>
+                  }
                 </div>
               </div>
             </div>
           </div>
 
-          {/* MY PROFILE & INTEGRATED ACADEMIC SETTINGS SECTION */}
+          {/* ADMIN PROFILE & SETTINGS SECTION */}
           <div className="dash-section" id="adm-profile">
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '1rem' }}>👤 Profile & Academic Configurations</h2>
-            <div className="card" style={{ maxWidth: '600px' }}>
-              <form onSubmit={handleSaveAllConfigurations}>
-                <h3 style={{ marginBottom: '1rem', fontWeight: 700, fontSize: '1.1rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem' }}>Personal Identity Info</h3>
-                <div className="form-group" style={{ marginBottom: '1rem' }}>
-                  <label className="form-label">Admin Name</label>
-                  <input className="form-input" type="text" value={adminProfile.fullName || ''} onChange={e => setAdminProfile({ ...adminProfile, fullName: e.target.value })} required />
-                </div>
-                <div className="form-group" style={{ marginBottom: '1rem' }}>
-                  <label className="form-label">Phone Reference</label>
-                  <input className="form-input" type="tel" value={adminProfile.contactNumber || ''} onChange={e => setAdminProfile({ ...adminProfile, contactNumber: e.target.value })} required />
-                </div>
-                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                  <label className="form-label">School Name Reference</label>
-                  <input className="form-input" type="text" placeholder="e.g., Little Flower High School" value={adminProfile.schoolName || ''} onChange={e => setAdminProfile({ ...adminProfile, schoolName: e.target.value })} required />
-                </div>
-
-                <h3 style={{ marginBottom: '1rem', fontWeight: 700, fontSize: '1.1rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem', marginTop: '1.5rem' }}>Academic Framework Settings</h3>
-                <div className="form-group" style={{ marginBottom: '1rem' }}>
-                  <label className="form-label">Academic Year</label>
-                  <input 
-                    className="form-input" 
-                    type="text" 
-                    placeholder="e.g., 2026" 
-                    value={academicSettings.academicYear} 
-                    onChange={e => setAcademicSettings({ ...academicSettings, academicYear: e.target.value })} 
-                    required 
-                  />
-                </div>
-                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                  <label className="form-label">Current Term</label>
-                  <input 
-                    className="form-input" 
-                    type="text" 
-                    placeholder="e.g., First Term" 
-                    value={academicSettings.currentTerm} 
-                    onChange={e => setAcademicSettings({ ...academicSettings, currentTerm: e.target.value })} 
-                    required 
-                  />
-                </div>
-
-                <button type="submit" className="btn-submit" disabled={isUpdatingProfile || isSavingSettings}>
-                  {isUpdatingProfile ? 'Saving Matrix Profiles...' : 'Save and Configure Changes'}
-                </button>
-              </form>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.5rem' }}>👤 Admin Matrix & Profile Architecture</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'start' }}>
+              <div className="card shadow-sm">
+                <h3 style={{ marginBottom: '1rem', fontWeight: 700 }}>Personal Identity Configurations</h3>
+                <form onSubmit={handleUpdateProfile}>
+                  <div className="form-group" style={{ marginBottom: '1rem' }}>
+                    <label className="form-label">Full Name Signature</label>
+                    <input className="form-input" type="text" value={adminProfile.fullName} onChange={e => setAdminProfile({ ...adminProfile, fullName: e.target.value })} required />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: '1rem' }}>
+                    <label className="form-label">Contact Mobile Link</label>
+                    <input className="form-input" type="text" value={adminProfile.contactNumber} onChange={e => setAdminProfile({ ...adminProfile, contactNumber: e.target.value })} required />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                    <label className="form-label">School Brand Name</label>
+                    <input className="form-input" type="text" value={adminProfile.schoolName} onChange={e => setAdminProfile({ ...adminProfile, schoolName: e.target.value })} required />
+                  </div>
+                  <button type="submit" className="btn-submit" disabled={isUpdatingProfile}>{isUpdatingProfile ? 'Saving profile...' : 'Commit Identity Changes'}</button>
+                </form>
+              </div>
+              <div className="card shadow-sm">
+                <h3 style={{ marginBottom: '1rem', fontWeight: 700 }}>Academic Track Frameworks</h3>
+                <form onSubmit={handleSaveAllConfigurations}>
+                  <div className="form-group" style={{ marginBottom: '1rem' }}>
+                    <label className="form-label">Academic Year Index</label>
+                    <input className="form-input" type="text" placeholder="e.g., 2026" value={academicSettings.academicYear} onChange={e => setAcademicSettings({ ...academicSettings, academicYear: e.target.value })} required />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                    <label className="form-label">Current Term</label>
+                    <input className="form-input" type="text" placeholder="e.g., First Term" value={academicSettings.currentTerm} onChange={e => setAcademicSettings({ ...academicSettings, currentTerm: e.target.value })} required />
+                  </div>
+                  <button type="submit" className="btn-submit" disabled={isUpdatingProfile || isSavingSettings}>
+                    {isUpdatingProfile ? 'Saving Matrix Profiles...' : 'Save and Configure Changes'}
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
 
@@ -896,14 +870,13 @@ export default function AdminDashboard({ navigate, showToast }) {
               </form>
             ) : (
               <>
-                <p><strong>UID:</strong> {selectedStudent.id}</p>
                 <p><strong>Full Name:</strong> {selectedStudent.name}</p>
-                <p><strong>Class Assignment:</strong> Class {selectedStudent.class} (Sec {selectedStudent.section})</p>
-                <p><strong>Roll Identifier:</strong> #{selectedStudent.rollNo}</p>
-                <p><strong>Account Status:</strong> {selectedStudent.status}</p>
+                <p><strong>Class Portfolio:</strong> Class {selectedStudent.class} ({selectedStudent.section})</p>
+                <p><strong>Roll Identifier:</strong> {selectedStudent.rollNo}</p>
+                <p><strong>System Status:</strong> {selectedStudent.status}</p>
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
-                  <button className="btn-submit" style={{ background: '#f59e0b', color: 'white', margin: 0 }} onClick={() => setIsEditingStudent(true)}>Edit Profile</button>
-                  <button className="btn-secondary" style={{ margin: 0 }} onClick={() => setSelectedStudent(null)}>Close</button>
+                  <button className="btn-submit" style={{ margin: 0, background: '#f59e0b' }} onClick={() => setIsEditingStudent(true)}>Edit Mode</button>
+                  <button className="btn-secondary" onClick={() => setSelectedStudent(null)}>Close View</button>
                 </div>
               </>
             )}
@@ -914,13 +887,13 @@ export default function AdminDashboard({ navigate, showToast }) {
       {selectedTeacher && (
         <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: '2rem' }}>
           <div className="card" style={{ background: 'white', padding: '2rem', borderRadius: '8px', width: '100%', maxWidth: '500px' }}>
-            <h3>{isEditingTeacher ? '📝 Edit Faculty Profile' : '📄 Faculty Roster Document'}</h3>
+            <h3>{isEditingTeacher ? '📝 Edit Teacher Allocation' : '📄 Faculty Database Document'}</h3>
             <hr />
             {isEditingTeacher ? (
               <form onSubmit={handleSaveTeacherEdit}>
-                <div className="form-group mb-2"><label className="form-label">Teacher Name</label><input className="form-input" value={editTeacherData.name} onChange={e => setEditTeacherData({...editTeacherData, name: e.target.value})} required /></div>
-                <div className="form-group mb-2"><label className="form-label">Employee ID</label><input className="form-input" value={editTeacherData.employeeId} onChange={e => setEditTeacherData({...editTeacherData, employeeId: e.target.value})} required /></div>
-                <div className="form-group mb-2"><label className="form-label">Subjects (comma separated)</label><input className="form-input" value={editTeacherData.subjects} onChange={e => setEditTeacherData({...editTeacherData, subjects: e.target.value})} required /></div>
+                <div className="form-group mb-2"><label className="form-label">Faculty Full Name</label><input className="form-input" value={editTeacherData.name} onChange={e => setEditTeacherData({...editTeacherData, name: e.target.value})} required /></div>
+                <div className="form-group mb-2"><label className="form-label">Employee Code ID</label><input className="form-input" value={editTeacherData.employeeId} onChange={e => setEditTeacherData({...editTeacherData, employeeId: e.target.value})} required /></div>
+                <div className="form-group mb-2"><label className="form-label">Expertise Subjects (comma separated)</label><input className="form-input" value={editTeacherData.subjects} onChange={e => setEditTeacherData({...editTeacherData, subjects: e.target.value})} required /></div>
                 <div className="form-group mb-2"><label className="form-label">Assigned Classes (comma separated)</label><input className="form-input" value={editTeacherData.classes} onChange={e => setEditTeacherData({...editTeacherData, classes: e.target.value})} required /></div>
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
                   <button type="button" className="btn-secondary" onClick={() => setIsEditingTeacher(false)}>Back to View</button>
@@ -934,8 +907,8 @@ export default function AdminDashboard({ navigate, showToast }) {
                 <p><strong>Expertise Areas:</strong> {selectedTeacher.subjects}</p>
                 <p><strong>Class Portfolios:</strong> {selectedTeacher.classes}</p>
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
-                  <button className="btn-submit" style={{ background: '#f59e0b', color: 'white', margin: 0 }} onClick={() => setIsEditingTeacher(true)}>Edit Profile</button>
-                  <button className="btn-secondary" style={{ margin: 0 }} onClick={() => setSelectedTeacher(null)}>Close</button>
+                  <button className="btn-submit" style={{ margin: 0, background: '#f59e0b' }} onClick={() => setIsEditingTeacher(true)}>Edit Mode</button>
+                  <button className="btn-secondary" onClick={() => setSelectedTeacher(null)}>Close View</button>
                 </div>
               </>
             )}
@@ -943,48 +916,169 @@ export default function AdminDashboard({ navigate, showToast }) {
         </div>
       )}
 
-      {/* Direct Creation Modals for Student & Teacher Assignment */}
-      {activeModal === 'student' && (
-        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
-          <div className="card" style={{ background: 'white', padding: '2rem', borderRadius: '8px', width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h3>🎓 Register New Student</h3>
+      {selectedAdmission && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: '2rem' }}>
+          <div className="card" style={{ background: 'white', padding: '2rem', borderRadius: '8px', width: '100%', maxWidth: '550px', maxHeight: '85vh', overflowY: 'auto' }}>
+            <h3>📄 Comprehensive Admission Filing Logs</h3>
             <hr />
+            <div style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>
+              <h4>Student Identity Metrics</h4>
+              <p><strong>Full Name:</strong> {selectedAdmission.name}</p>
+              <p><strong>Target Grade Class:</strong> {selectedAdmission.class}</p>
+              <p><strong>Filing Date Index:</strong> {selectedAdmission.submissionDate}</p>
+              <p><strong>Current Filing Status:</strong> <span className={`status-badge ${selectedAdmission.status === 'Accepted' ? 'status-active' : 'status-pending'}`}>{selectedAdmission.status}</span></p>
+              
+              {selectedAdmission.raw?.studentInfo && (
+                <>
+                  <p><strong>Date of Birth:</strong> {selectedAdmission.raw.studentInfo.dateOfBirth || 'N/A'}</p>
+                  <p><strong>Gender Status:</strong> {selectedAdmission.raw.studentInfo.gender || 'N/A'}</p>
+                  <p><strong>Previous Institution:</strong> {selectedAdmission.raw.academicInfo?.previousSchool || 'N/A'}</p>
+                </>
+              )}
+              
+              <h4 style={{ marginTop: '1rem' }}>Guardian Liaison Metrics</h4>
+              <p><strong>Primary Guardian Name:</strong> {selectedAdmission.parentName}</p>
+              <p><strong>Contact Liaison Phone:</strong> {selectedAdmission.phone}</p>
+              {selectedAdmission.raw?.contactInfo?.email && <p><strong>Liaison Email Vector:</strong> {selectedAdmission.raw.contactInfo.email}</p>}
+              {selectedAdmission.raw?.contactInfo?.residentialAddress && <p><strong>Residential Address Stack:</strong> {selectedAdmission.raw.contactInfo.residentialAddress}</p>}
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
+              {selectedAdmission.status !== 'Accepted' && (
+                <>
+                  <button className="btn-submit" style={{ margin: 0, background: '#10b981' }} onClick={() => { handleAcceptAdmission(selectedAdmission); setSelectedAdmission(null); }}>Approve Entrance</button>
+                  <button className="btn-secondary" style={{ background: '#dc2626', color: 'white' }} onClick={() => { handleRejectAdmission(selectedAdmission.id); setSelectedAdmission(null); }}>Reject Application</button>
+                </>
+              )}
+              <button className="btn-secondary" onClick={() => setSelectedAdmission(null)}>Dismiss Logs</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Student Management Form Modal */}
+      {activeModal === 'student' && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: '1rem' }}>
+          <div className="card" style={{ background: 'white', padding: '2rem', borderRadius: '8px', width: '100%', maxWidth: '650px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h3 className="modal-title" style={{ fontWeight: 800, marginBottom: '1rem' }}>Register New Student Profile</h3>
             <form onSubmit={handleStudentRegistration}>
-              <input className="form-input mb-2" type="text" placeholder="Full Student Name" value={studentFormData.fullName} onChange={e => setStudentFormData({...studentFormData, fullName: e.target.value})} required />
-              <input className="form-input mb-2" type="date" placeholder="Date of Birth" value={studentFormData.dob} onChange={e => setStudentFormData({...studentFormData, dob: e.target.value})} required />
-              <select className="form-select mb-2" value={studentFormData.gender} onChange={e => setStudentFormData({...studentFormData, gender: e.target.value})} required>
-                <option value="">Select Gender</option><option value="Male">Male</option><option value="Female">Female</option>
-              </select>
-              <input className="form-input mb-2" type="text" placeholder="Class Name (e.g. 10)" value={studentFormData.className} onChange={e => setStudentFormData({...studentFormData, className: e.target.value})} required />
-              <input className="form-input mb-2" type="text" placeholder="Section (e.g. A)" value={studentFormData.section} onChange={e => setStudentFormData({...studentFormData, section: e.target.value})} required />
-              <input className="form-input mb-2" type="text" placeholder="Roll Number" value={studentFormData.rollNo} onChange={e => setStudentFormData({...studentFormData, rollNo: e.target.value})} required />
-              <input className="form-input mb-2" type="email" placeholder="Parent Account Login Email" value={studentFormData.parentEmail} onChange={e => setStudentFormData({...studentFormData, parentEmail: e.target.value})} required />
-              <input className="form-input mb-2" type="text" placeholder="Parent Name" value={studentFormData.parentName} onChange={e => setStudentFormData({...studentFormData, parentName: e.target.value})} required />
-              <input className="form-input mb-2" type="tel" placeholder="Parent Phone" value={studentFormData.parentPhone} onChange={e => setStudentFormData({...studentFormData, parentPhone: e.target.value})} required />
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                <button type="submit" className="btn-submit" disabled={isSubmitting}>Register</button>
-                <button type="button" className="btn-secondary" style={{ background: '#ccc' }} onClick={() => setActiveModal(null)}>Cancel</button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group mb-2">
+                  <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Student Full Name</label>
+                  <input className="form-input" type="text" placeholder="Full Name" value={studentFormData.fullName} onChange={e => setStudentFormData({...studentFormData, fullName: e.target.value})} required />
+                </div>
+                <div className="form-group mb-2">
+                  <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Date of Birth</label>
+                  <input className="form-input" type="date" value={studentFormData.dob} onChange={e => setStudentFormData({...studentFormData, dob: e.target.value})} required />
+                </div>
+                <div className="form-group mb-2">
+                  <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Gender</label>
+                  <select className="form-select" value={studentFormData.gender} onChange={e => setStudentFormData({...studentFormData, gender: e.target.value})} required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="form-group mb-2">
+                  <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Class Name</label>
+                  <input className="form-input" type="text" placeholder="e.g., 6, 7, 8" value={studentFormData.className} onChange={e => setStudentFormData({...studentFormData, className: e.target.value})} required />
+                </div>
+                <div className="form-group mb-2">
+                  <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Section Name</label>
+                  <input className="form-input" type="text" placeholder="e.g., A, B" value={studentFormData.section} onChange={e => setStudentFormData({...studentFormData, section: e.target.value})} required />
+                </div>
+                <div className="form-group mb-2">
+                  <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Roll Number</label>
+                  <input className="form-input" type="text" placeholder="Roll Number" value={studentFormData.rollNo} onChange={e => setStudentFormData({...studentFormData, rollNo: e.target.value})} required />
+                </div>
+                <div className="form-group mb-2">
+                  <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Student Grade Level</label>
+                  <input className="form-input" type="text" placeholder="e.g., A+, B" value={studentFormData.studentGrade} onChange={e => setStudentFormData({...studentFormData, studentGrade: e.target.value})} required />
+                </div>
+                <div className="form-group mb-2">
+                  <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Previous Attended School</label>
+                  <input className="form-input" type="text" placeholder="Previous School" value={studentFormData.previousSchool} onChange={e => setStudentFormData({...studentFormData, previousSchool: e.target.value})} />
+                </div>
+                <div className="form-group mb-2">
+                  <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Parent or Guardian Name</label>
+                  <input className="form-input" type="text" placeholder="Parent Name" value={studentFormData.parentName} onChange={e => setStudentFormData({...studentFormData, parentName: e.target.value})} required />
+                </div>
+                <div className="form-group mb-2">
+                  <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Relationship with Student</label>
+                  <select className="form-select" value={studentFormData.relationship} onChange={e => setStudentFormData({...studentFormData, relationship: e.target.value})} required>
+                    <option value="Father">Father</option>
+                    <option value="Mother">Mother</option>
+                    <option value="Guardian">Guardian</option>
+                  </select>
+                </div>
+                <div className="form-group mb-2">
+                  <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Parent Login Email</label>
+                  <input className="form-input" type="email" placeholder="Parent Email" value={studentFormData.parentEmail} onChange={e => setStudentFormData({...studentFormData, parentEmail: e.target.value})} required />
+                </div>
+                <div className="form-group mb-2">
+                  <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Parent Phone Number</label>
+                  <input className="form-input" type="tel" placeholder="Parent Phone" value={studentFormData.parentPhone} onChange={e => setStudentFormData({...studentFormData, parentPhone: e.target.value})} required />
+                </div>
+              </div>
+              <div className="form-group mb-2" style={{ width: '100%' }}>
+                <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Residential Address</label>
+                <textarea className="form-input" placeholder="Residential Address" value={studentFormData.address} onChange={e => setStudentFormData({...studentFormData, address: e.target.value})} required style={{ height: '60px' }}></textarea>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
+                <button type="button" className="btn-secondary" style={{ background: '#ccc', margin: 0 }} onClick={() => setActiveModal(null)}>Cancel</button>
+                <button type="submit" className="btn-submit" style={{ margin: 0 }} disabled={isSubmitting}>{isSubmitting ? 'Registering...' : 'Register Student'}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
+      {/* Teacher Management Form Modal */}
       {activeModal === 'teacher' && (
-        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
-          <div className="card" style={{ background: 'white', padding: '2rem', borderRadius: '8px', width: '100%', maxWidth: '500px' }}>
-            <h3>👩‍🏫 Assign Faculty Member</h3>
-            <hr />
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: '1rem' }}>
+          <div className="card" style={{ background: 'white', padding: '2rem', borderRadius: '8px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h3 className="modal-title" style={{ fontWeight: 800, marginBottom: '1rem' }}>Assign Faculty Member</h3>
             <form onSubmit={handleTeacherRegistration}>
-              <input className="form-input mb-2" type="text" placeholder="Teacher Full Name" value={teacherFormData.teacherName} onChange={e => setTeacherFormData({...teacherFormData, teacherName: e.target.value})} required />
-              <input className="form-input mb-2" type="text" placeholder="Employee ID Identifier" value={teacherFormData.employeeId} onChange={e => setTeacherFormData({...teacherFormData, employeeId: e.target.value})} required />
-              <input className="form-input mb-2" type="text" placeholder="Subjects (comma separated)" value={teacherFormData.subjects} onChange={e => setTeacherFormData({...teacherFormData, subjects: e.target.value})} required />
-              <input className="form-input mb-2" type="text" placeholder="Assigned Classes (comma separated)" value={teacherFormData.assignedClasses} onChange={e => setTeacherFormData({...teacherFormData, assignedClasses: e.target.value})} required />
-              <input className="form-input mb-2" type="email" placeholder="Teacher Login Email" value={teacherFormData.teacherEmail} onChange={e => setTeacherFormData({...teacherFormData, teacherEmail: e.target.value})} required />
-              <input className="form-input mb-2" type="tel" placeholder="Teacher Phone Number" value={teacherFormData.teacherPhone} onChange={e => setTeacherFormData({...teacherFormData, teacherPhone: e.target.value})} required />
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                <button type="submit" className="btn-submit" disabled={isSubmitting}>Assign Faculty</button>
-                <button type="button" className="btn-secondary" style={{ background: '#ccc' }} onClick={() => setActiveModal(null)}>Cancel</button>
+              <div className="form-group mb-2">
+                <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Teacher Full Name</label>
+                <input className="form-input" type="text" placeholder="Teacher Full Name" value={teacherFormData.teacherName} onChange={e => setTeacherFormData({...teacherFormData, teacherName: e.target.value})} required />
+              </div>
+              <div className="form-group mb-2">
+                <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Employee ID</label>
+                <input className="form-input" type="text" placeholder="Employee ID" value={teacherFormData.employeeId} onChange={e => setTeacherFormData({...teacherFormData, employeeId: e.target.value})} required />
+              </div>
+              <div className="form-group mb-2">
+                <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Date of Birth</label>
+                <input className="form-input" type="date" value={teacherFormData.dob} onChange={e => setTeacherFormData({...teacherFormData, dob: e.target.value})} required />
+              </div>
+              <div className="form-group mb-2">
+                <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Gender</label>
+                <select className="form-select" value={teacherFormData.gender} onChange={e => setTeacherFormData({...teacherFormData, gender: e.target.value})} required>
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div className="form-group mb-2">
+                <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Subjects (comma separated)</label>
+                <input className="form-input" type="text" placeholder="Subjects (comma separated)" value={teacherFormData.subjects} onChange={e => setTeacherFormData({...teacherFormData, subjects: e.target.value})} required />
+              </div>
+              <div className="form-group mb-2">
+                <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Assigned Classes (comma separated)</label>
+                <input className="form-input" type="text" placeholder="Assigned Classes (comma separated)" value={teacherFormData.assignedClasses} onChange={e => setTeacherFormData({...teacherFormData, assignedClasses: e.target.value})} required />
+              </div>
+              <div className="form-group mb-2">
+                <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Teacher Login Email</label>
+                <input className="form-input" type="email" placeholder="Teacher Login Email" value={teacherFormData.teacherEmail} onChange={e => setTeacherFormData({...teacherFormData, teacherEmail: e.target.value})} required />
+              </div>
+              <div className="form-group mb-2">
+                <label className="form-label" style={{ display: 'block', fontWeight: '600', marginBottom: '0.25rem' }}>Teacher Phone Number</label>
+                <input className="form-input" type="tel" placeholder="Teacher Phone Number" value={teacherFormData.teacherPhone} onChange={e => setTeacherFormData({...teacherFormData, teacherPhone: e.target.value})} required />
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
+                <button type="button" className="btn-secondary" style={{ background: '#ccc', margin: 0 }} onClick={() => setActiveModal(null)}>Cancel</button>
+                <button type="submit" className="btn-submit" style={{ margin: 0 }} disabled={isSubmitting}>{isSubmitting ? 'Assigning...' : 'Assign Faculty'}</button>
               </div>
             </form>
           </div>

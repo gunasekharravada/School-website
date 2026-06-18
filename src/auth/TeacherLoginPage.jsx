@@ -9,8 +9,25 @@ export default function TeacherLoginPage({ navigate }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
   const db = getFirestore();
+
+  // Helper function to convert DD-MM-YYYY or DD/MM/YYYY to YYYY-MM-DD
+  const convertToDbDateFormat = (dateString) => {
+    // Replaces slashes or dots with hyphens just in case
+    const cleanDate = dateString.replace(/[\/.]/g, '-').trim();
+    const parts = cleanDate.split('-');
+    
+    // Ensure we have 3 parts (day, month, year)
+    if (parts.length === 3) {
+      const day = parts[0].padStart(2, '0');
+      const month = parts[1].padStart(2, '0');
+      const year = parts[2];
+      
+      // Returns YYYY-MM-DD to match your Firestore schema format
+      return `${year}-${month}-${day}`;
+    }
+    return dateString; // Fallback if format is unexpected
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -24,13 +41,15 @@ export default function TeacherLoginPage({ navigate }) {
     }
 
     try {
+      // Convert the teacher's input (DD-MM-YYYY) to database format (YYYY-MM-DD)
+      const formattedPasswordForDb = convertToDbDateFormat(dobPassword);
+
       const teachersRef = collection(db, 'teachers');
       const q = query(
         teachersRef, 
         where('employeeId', '==', employeeId.trim()), 
-        where('dateOfBirth', '==', dobPassword.trim())
+        where('dateOfBirth', '==', formattedPasswordForDb)
       );
-
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
@@ -38,7 +57,6 @@ export default function TeacherLoginPage({ navigate }) {
         querySnapshot.forEach((doc) => {
           teacherData = { id: doc.id, ...doc.data() };
         });
-
         localStorage.setItem('currentTeacher', JSON.stringify(teacherData));
         navigate('teacher-dashboard');
       } else {
@@ -96,6 +114,7 @@ export default function TeacherLoginPage({ navigate }) {
               value={employeeId}
               onChange={(e) => setEmployeeId(e.target.value)}
               disabled={loading}
+              required
             />
           </div>
 
@@ -105,11 +124,12 @@ export default function TeacherLoginPage({ navigate }) {
               <input 
                 className="form-input" 
                 type={showPassword ? "text" : "password"} 
-                placeholder="YYYY-MM-DD" 
+                placeholder="DD-MM-YYYY" 
                 value={dobPassword}
                 onChange={(e) => setDobPassword(e.target.value)}
                 disabled={loading}
                 style={{ width: '100%', paddingRight: '40px' }} 
+                required
               />
               <button
                 type="button"
@@ -135,7 +155,7 @@ export default function TeacherLoginPage({ navigate }) {
             type="submit" 
             className="btn-auth" 
             disabled={loading}
-            style={{ opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
+            style={{ opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer', marginTop: '15px' }}
           >
             {loading ? 'Verifying...' : 'Login to Teacher Portal →'}
           </button>

@@ -5,17 +5,34 @@ import './ParentLoginPage.css';
 
 export default function ParentLoginPage({ navigate }) {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState(''); // This will hold the DD-MM-YYYY input
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
   const db = getFirestore();
+
+  // Helper function to convert DD-MM-YYYY or DD/MM/YYYY to YYYY-MM-DD
+  const convertToDbDateFormat = (dateString) => {
+    // Replaces slashes or dots with hyphens just in case
+    const cleanDate = dateString.replace(/[\/.]/g, '-').trim();
+    const parts = cleanDate.split('-');
+    
+    // Ensure we have 3 parts (day, month, year)
+    if (parts.length === 3) {
+      const day = parts[0].padStart(2, '0');
+      const month = parts[1].padStart(2, '0');
+      const year = parts[2];
+      
+      // Returns YYYY-MM-DD to match your Firestore Option A structure
+      return `${year}-${month}-${day}`;
+    }
+    return dateString; // Fallback if format is unexpected
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
+    loading || setLoading(true);
 
     if (!email || !password) {
       setError('Please fill in all fields.');
@@ -24,11 +41,16 @@ export default function ParentLoginPage({ navigate }) {
     }
 
     try {
+      // Convert the user's input (DD-MM-YYYY) to database format (YYYY-MM-DD)
+      const formattedPasswordForDb = convertToDbDateFormat(password);
+
       const studentsRef = collection(db, 'students');
+      
+      // Query using Option A (Nested structure)
       const q = query(
         studentsRef,
-        where('contactInfo.email', '==', email.trim()),
-        where('studentInfo.dateOfBirth', '==', password.trim())
+        where('contactInfo.email', '==', email.trim().toLowerCase()),
+        where('studentInfo.dateOfBirth', '==', formattedPasswordForDb)
       );
 
       const querySnapshot = await getDocs(q);
@@ -38,7 +60,7 @@ export default function ParentLoginPage({ navigate }) {
         querySnapshot.forEach((doc) => {
           studentData = { id: doc.id, ...doc.data() };
         });
-
+        
         localStorage.setItem('currentStudent', JSON.stringify(studentData));
         navigate('parent-dashboard');
       } else {
@@ -110,7 +132,7 @@ export default function ParentLoginPage({ navigate }) {
               <input
                 className="form-input"
                 type={showPassword ? "text" : "password"}
-                placeholder="YYYY-MM-DD"
+                placeholder="DD-MM-YYYY"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
@@ -160,7 +182,7 @@ export default function ParentLoginPage({ navigate }) {
         </form>
 
         <div className="form-help">
-          Don't have an account? Use your registered contact email and your child's date of birth as the password.
+          Don't have an account? Use your registered contact email and your child's date of birth (DD-MM-YYYY) as the password.
         </div>
       </AuthLayout>
     </div>

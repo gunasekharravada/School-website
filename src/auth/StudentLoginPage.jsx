@@ -11,6 +11,24 @@ export default function StudentLoginPage({ navigate }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Helper function to convert DD-MM-YYYY or DD/MM/YYYY to YYYY-MM-DD
+  const convertToDbDateFormat = (dateString) => {
+    // Replaces slashes or dots with hyphens just in case
+    const cleanDate = dateString.replace(/[\/.]/g, '-').trim();
+    const parts = cleanDate.split('-');
+    
+    // Ensure we have 3 parts (day, month, year)
+    if (parts.length === 3) {
+      const day = parts[0].padStart(2, '0');
+      const month = parts[1].padStart(2, '0');
+      const year = parts[2];
+      
+      // Returns YYYY-MM-DD to match your Firestore schema
+      return `${year}-${month}-${day}`;
+    }
+    return dateString; // Fallback if format is unexpected
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -23,11 +41,14 @@ export default function StudentLoginPage({ navigate }) {
     }
 
     try {
+      // Convert the user's input (DD-MM-YYYY) to database format (YYYY-MM-DD)
+      const formattedPasswordForDb = convertToDbDateFormat(password);
+
       const studentsRef = collection(db, 'students');
       const q = query(
         studentsRef, 
         where('academicInfo.rollNumber', '==', rollNumber.trim()),
-        where('studentInfo.dateOfBirth', '==', password.trim())
+        where('studentInfo.dateOfBirth', '==', formattedPasswordForDb)
       );
 
       const querySnapshot = await getDocs(q);
@@ -78,6 +99,7 @@ export default function StudentLoginPage({ navigate }) {
               value={rollNumber}
               onChange={(e) => setRollNumber(e.target.value)}
               disabled={loading}
+              required
             />
           </div>
           
@@ -87,11 +109,12 @@ export default function StudentLoginPage({ navigate }) {
               <input 
                 className="form-input" 
                 type={showPassword ? "text" : "password"} 
-                placeholder="YYYY-MM-DD" 
+                placeholder="DD-MM-YYYY" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
                 style={{ width: '100%', paddingRight: '40px' }} 
+                required
               />
               <span 
                 className="password-toggle-icon"
