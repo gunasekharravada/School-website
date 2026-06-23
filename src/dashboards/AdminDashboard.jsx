@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import '../components/Sidebar.css';
 import './AdminDashboard.css';
 import { auth, db } from '../firebase/firebaseconfig';
@@ -61,6 +61,8 @@ export default function AdminDashboard({ navigate, showToast }) {
   const [classRequirements, setClassRequirements] = useState({
     '6': 30, '7': 25, '8': 20, '9': 15, '10': 20
   });
+  const unsubscribeRefs = useRef([]);
+
   // Load All Core Management Tracking Logs & Firebase Initializers
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -142,10 +144,9 @@ export default function AdminDashboard({ navigate, showToast }) {
       }
     };
     
-    loadDashboardData();
-
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
+        // Load admin profile from Firestore
         try {
           const docSnap = await getDoc(doc(db, 'admins', currentUser.uid));
           if (docSnap.exists()) {
@@ -158,11 +159,19 @@ export default function AdminDashboard({ navigate, showToast }) {
         } catch (error) {
           console.error("Profile authorization check failure:", error);
         }
+        // Only load dashboard data when authenticated
+        loadDashboardData();
       } else {
+        // No active Firebase session — redirect immediately
         navigate('home');
       }
     });
-    return () => unsubscribe();
+
+    unsubscribeRefs.current.push(unsubscribeAuth);
+    return () => {
+      unsubscribeRefs.current.forEach((fn) => fn());
+      unsubscribeRefs.current = [];
+    };
   }, [navigate]);
 
   // Save Academic Settings & Profile Info Combined Update Logic
@@ -377,8 +386,40 @@ export default function AdminDashboard({ navigate, showToast }) {
     } catch { showToast('Failed deletion process.', 'danger'); }
   };
   async function handleLogout() {
-    try { await signOut(auth); showToast('Logged out.', 'success'); navigate('home');
-    } catch { showToast('Error logging out.', 'danger'); }
+    // 1. Detach all Firestore listeners immediately
+    unsubscribeRefs.current.forEach((fn) => fn());
+    unsubscribeRefs.current = [];
+
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error('Firebase signOut error:', err);
+    }
+
+    // 2. Wipe all session and cached data
+    localStorage.removeItem('adminSession');
+    localStorage.removeItem('currentPage');
+    localStorage.removeItem('schoolApplications');
+    sessionStorage.clear();
+
+    // 3. Reset all React state to clean defaults
+    setAdminProfile({ fullName: '', contactNumber: '', schoolName: '' });
+    setAdmissions([]);
+    setAcceptedAdmissions([]);
+    setStudents([]);
+    setTeachers([]);
+    setNotices([]);
+    setEvents([]);
+    setGalleryItems([]);
+    setSelectedAdmission(null);
+    setSelectedStudent(null);
+    setSelectedTeacher(null);
+    setIsEditingStudent(false);
+    setIsEditingTeacher(false);
+    setActiveModal(null);
+
+    showToast('Logged out successfully. Session closed.', 'success');
+    navigate('home');
   }
 
   const handleUpdateProfile = async (e) => {
@@ -521,8 +562,8 @@ export default function AdminDashboard({ navigate, showToast }) {
           {/* HOME OVERVIEW */}
           <div className="dash-section active" id="adm-home">
             <div className="welcome-banner">
-              <div className="welcome-title">{adminProfile.schoolName || 'Vidyalaya'} Control Matrix 🏫</div>
-              <div className="welcome-subtitle">Operational Hub · Academic Year {academicSettings.academicYear} ({academicSettings.currentTerm})</div>
+              <div className="welcome-title">{adminProfile.schoolName || 'Vidyalaya'} Dashboard 🏫</div>
+              <div className="welcome-subtitle"> Academic Year {academicSettings.academicYear} ({academicSettings.currentTerm})</div>
             </div>
             
             <div className="admin-stat-cards">
@@ -665,7 +706,7 @@ export default function AdminDashboard({ navigate, showToast }) {
                   <option value="9">Class 9</option>
                   <option value="10">Class 10</option>
                 </select>
-                <button className="btn-submit btn-sm" style={{ whiteSpace: 'nowrap' }} onClick={() => setActiveModal('student')}>+ Register Student</button>
+                <button className="btn-submit btn-sm" style={{ whiteSpace: 'nowrap' }} onClick={() => setActiveModal('student')}>+ Add Student</button>
               </div>
             </div>
             <table className="data-table">
@@ -693,7 +734,7 @@ export default function AdminDashboard({ navigate, showToast }) {
           {/* TEACHER MANAGEMENT */}
           <div className="dash-section" id="adm-teachers">
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-              <h2>👩‍🏫 Faculty Assignment Roster</h2>
+              <h2>👩‍🏫 Teacher Management</h2>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <input className="form-input" style={{ width: '200px', margin: 0 }} type="text" placeholder="🔍 Search faculty/ID..." value={teacherSearch} onChange={e => setTeacherSearch(e.target.value)} />
                 <input className="form-input" style={{ width: '130px', margin: 0 }} type="text" placeholder="Class Filter..." value={teacherClassFilter} onChange={e => setTeacherClassFilter(e.target.value)} />
@@ -701,7 +742,7 @@ export default function AdminDashboard({ navigate, showToast }) {
               </div>
             </div>
             <table className="data-table">
-              <thead><tr><th>Faculty Name</th><th>Employee ID</th><th>Subjects Expertise</th><th>Portfolios</th><th>Status</th><th style={{ textAlign: 'center' }}>Actions</th></tr></thead>
+              <thead><tr><th>Faculty Name</th><th>Employee ID</th><th>Subjects </th><th>Class</th><th>Status</th><th style={{ textAlign: 'center' }}>Actions</th></tr></thead>
               <tbody>
                 {filteredTeachers.map(tc => (
                   <tr key={tc.id} onClick={() => { setSelectedTeacher(tc); setEditTeacherData({ name: tc.name, employeeId: tc.employeeId, subjects: tc.subjects, classes: tc.classes }); }} style={{ cursor: 'pointer' }}>

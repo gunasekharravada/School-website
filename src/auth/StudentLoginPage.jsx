@@ -3,6 +3,8 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/firebaseconfig'; 
 import AuthLayout from './AuthLayout';
 import './StudentLoginPage.css';
+// 1. Imported the js-cookie library
+import Cookies from 'js-cookie';
 
 export default function StudentLoginPage({ navigate }) {
   const [rollNumber, setRollNumber] = useState('');
@@ -13,64 +15,95 @@ export default function StudentLoginPage({ navigate }) {
 
   // Helper function to convert DD-MM-YYYY or DD/MM/YYYY to YYYY-MM-DD
   const convertToDbDateFormat = (dateString) => {
-    // Replaces slashes or dots with hyphens just in case
     const cleanDate = dateString.replace(/[\/.]/g, '-').trim();
     const parts = cleanDate.split('-');
     
-    // Ensure we have 3 parts (day, month, year)
     if (parts.length === 3) {
       const day = parts[0].padStart(2, '0');
       const month = parts[1].padStart(2, '0');
       const year = parts[2];
       
-      // Returns YYYY-MM-DD to match your Firestore schema
       return `${year}-${month}-${day}`;
     }
-    return dateString; // Fallback if format is unexpected
+    return dateString;
   };
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setError('');
+  setLoading(true);
 
-    if (!rollNumber.trim() || !password.trim()) {
-      setError('Please fill in both Roll Number and Password.');
-      setLoading(false);
-      return;
+  // Clear any previous session before attempting login
+  Cookies.remove('studentSession', { path: '/' });
+  localStorage.clear();
+  sessionStorage.clear();
+
+  if (!rollNumber.trim() || !password.trim()) {
+    setError('Please fill in both Roll Number and Password.');
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const formattedPasswordForDb = convertToDbDateFormat(password);
+
+    const studentsRef = collection(db, 'students');
+
+    const q = query(
+      studentsRef,
+      where('academicInfo.rollNumber', '==', rollNumber.trim()),
+      where('studentInfo.dateOfBirth', '==', formattedPasswordForDb)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      let studentData = null;
+
+      querySnapshot.forEach((doc) => {
+        studentData = {
+          id: doc.id,
+          ...doc.data()
+        };
+      });
+
+      // Extra safety: remove any old session again
+      // Remove any previous session
+Cookies.remove('studentSession', { path: '/' });
+
+localStorage.removeItem('studentSession');
+sessionStorage.removeItem('studentSession');
+
+// Save fresh session
+Cookies.set(
+  'studentSession',
+  JSON.stringify(studentData),
+  {
+    secure: true,
+    sameSite: 'strict',
+    path: '/',
+    expires: 7
+  }
+);
+
+// Optional backup storage
+localStorage.setItem(
+  'studentSession',
+  JSON.stringify(studentData)
+);
+
+// Navigate
+navigate('student-dashboard');
+    } else {
+      setError('Invalid Roll Number or Password (DOB). Please try again.');
     }
-
-    try {
-      // Convert the user's input (DD-MM-YYYY) to database format (YYYY-MM-DD)
-      const formattedPasswordForDb = convertToDbDateFormat(password);
-
-      const studentsRef = collection(db, 'students');
-      const q = query(
-        studentsRef, 
-        where('academicInfo.rollNumber', '==', rollNumber.trim()),
-        where('studentInfo.dateOfBirth', '==', formattedPasswordForDb)
-      );
-
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        let studentData = null;
-        querySnapshot.forEach((doc) => {
-          studentData = { id: doc.id, ...doc.data() };
-        });
-
-        localStorage.setItem('currentStudent', JSON.stringify(studentData));
-        navigate('student-dashboard');
-      } else {
-        setError('Invalid Roll Number or Password (DOB). Please try again.');
-      }
-    } catch (err) {
-      console.error("Error during student login:", err);
-      setError('An error occurred. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (err) {
+    console.error('Error during student login:', err);
+    setError('An error occurred. Please try again later.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="page" id="page-student-login">
@@ -95,7 +128,7 @@ export default function StudentLoginPage({ navigate }) {
             <label className="form-label">Roll Number</label>
             <input 
               className="form-input" 
-              placeholder="e.g., VID2024001" 
+              placeholder="e.g., 12345678" 
               value={rollNumber}
               onChange={(e) => setRollNumber(e.target.value)}
               disabled={loading}

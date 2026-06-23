@@ -60,8 +60,12 @@ export default function ParentLoginPage({ navigate }) {
         querySnapshot.forEach((doc) => {
           studentData = { id: doc.id, ...doc.data() };
         });
-        
-        localStorage.setItem('currentStudent', JSON.stringify(studentData));
+
+        // Clear any stale previous session before writing a new one
+        localStorage.removeItem('parentSession');
+        sessionStorage.removeItem('parentSession');
+
+        localStorage.setItem('parentSession', JSON.stringify(studentData));
         navigate('parent-dashboard');
       } else {
         setError('Invalid Email or Password.');

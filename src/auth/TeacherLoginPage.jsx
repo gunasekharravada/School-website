@@ -4,51 +4,31 @@ import AuthLayout from './AuthLayout';
 import './TeacherLoginPage.css';
 
 export default function TeacherLoginPage({ navigate }) {
-  const [employeeId, setEmployeeId] = useState('');
+  const [email, setEmail] = useState('');
   const [dobPassword, setDobPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const db = getFirestore();
 
-  // Helper function to convert DD-MM-YYYY or DD/MM/YYYY to YYYY-MM-DD
-  const convertToDbDateFormat = (dateString) => {
-    // Replaces slashes or dots with hyphens just in case
-    const cleanDate = dateString.replace(/[\/.]/g, '-').trim();
-    const parts = cleanDate.split('-');
-    
-    // Ensure we have 3 parts (day, month, year)
-    if (parts.length === 3) {
-      const day = parts[0].padStart(2, '0');
-      const month = parts[1].padStart(2, '0');
-      const year = parts[2];
-      
-      // Returns YYYY-MM-DD to match your Firestore schema format
-      return `${year}-${month}-${day}`;
-    }
-    return dateString; // Fallback if format is unexpected
-  };
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
+    loading || setLoading(true);
 
-    if (!employeeId || !dobPassword) {
+    if (!email || !dobPassword) {
       setError('Please fill in all fields.');
       setLoading(false);
       return;
     }
 
     try {
-      // Convert the teacher's input (DD-MM-YYYY) to database format (YYYY-MM-DD)
-      const formattedPasswordForDb = convertToDbDateFormat(dobPassword);
-
+      // Query the database directly matching contactInfo.email and dateOfBirth in YYYY-MM-DD format
       const teachersRef = collection(db, 'teachers');
       const q = query(
         teachersRef, 
-        where('employeeId', '==', employeeId.trim()), 
-        where('dateOfBirth', '==', formattedPasswordForDb)
+        where('contactInfo.email', '==', email.trim()), 
+        where('dateOfBirth', '==', dobPassword.trim())
       );
       const querySnapshot = await getDocs(q);
 
@@ -57,10 +37,15 @@ export default function TeacherLoginPage({ navigate }) {
         querySnapshot.forEach((doc) => {
           teacherData = { id: doc.id, ...doc.data() };
         });
-        localStorage.setItem('currentTeacher', JSON.stringify(teacherData));
+
+        // Clear any stale previous session before writing a new one
+        localStorage.removeItem('teacherSession');
+        sessionStorage.removeItem('teacherSession');
+
+        localStorage.setItem('teacherSession', JSON.stringify(teacherData));
         navigate('teacher-dashboard');
       } else {
-        setError('Invalid Employee ID or Date of Birth.');
+        setError('Invalid Email or Date of Birth.');
       }
     } catch (err) {
       console.error("Login Error: ", err);
@@ -106,13 +91,13 @@ export default function TeacherLoginPage({ navigate }) {
 
         <form onSubmit={handleLogin}>
           <div className="form-group">
-            <label className="form-label">Employee ID</label>
+            <label className="form-label">Email Address</label>
             <input 
               className="form-input" 
-              type="text"
-              placeholder="e.g., TCH20240001" 
-              value={employeeId}
-              onChange={(e) => setEmployeeId(e.target.value)}
+              type="email"
+              placeholder="e.g., teacher@vidyalaya.com" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
               required
             />
@@ -124,7 +109,7 @@ export default function TeacherLoginPage({ navigate }) {
               <input 
                 className="form-input" 
                 type={showPassword ? "text" : "password"} 
-                placeholder="DD-MM-YYYY" 
+                placeholder="YYYY-MM-DD" 
                 value={dobPassword}
                 onChange={(e) => setDobPassword(e.target.value)}
                 disabled={loading}

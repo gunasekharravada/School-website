@@ -112,7 +112,7 @@ export default function HomePage({ navigate, showToast }) {
           <div className="hero-visual">
             <div className="hero-card"><div className="card-icon">📚</div><div className="card-title">Today's Schedule</div><div className="card-value">Physics → Math → English → P.E.</div></div>
             <div className="hero-card"><div className="card-icon">📣</div><div className="card-title">Latest Announcement</div><div className="card-value">Annual Sports Day — Dec 15th 🏅</div></div>
-            <div className="hero-card"><div className="card-icon">📊</div><div className="card-title">Board Results 2026</div><div className="card-value">Class 12: 98.4% | Class 10: 99.1%</div></div>
+            <div className="hero-card"><div className="card-icon">📊</div><div className="card-title">Board Results 2026</div><div className="card-value">Class 10: 90.4% | Class 8-9: 90.1%</div></div>
           </div>
         </div>
       </section>

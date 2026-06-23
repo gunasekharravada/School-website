@@ -19,6 +19,7 @@ import ParentDashboard from './dashboards/ParentDashboard';
 import AdminDashboard from './dashboards/AdminDashboard';
 
 const dashPages = ['student-dashboard', 'teacher-dashboard', 'parent-dashboard', 'admin-dashboard'];
+const authPages = ['student-login', 'teacher-login', 'parent-login', 'admin-login'];
 
 function showToast(msg, type) {
   const toast = document.getElementById('toast');
@@ -29,9 +30,9 @@ function showToast(msg, type) {
   }
 }
 
-// Updated navigation to save the active page to the browser's memory
 function navigate(page) {
-  if (typeof window !== 'undefined') {
+  // Never persist dashboard or auth pages in localStorage
+  if (!dashPages.includes(page) && !authPages.includes(page)) {
     localStorage.setItem('currentPage', page);
   }
 
@@ -39,11 +40,20 @@ function navigate(page) {
   document.querySelectorAll('.dashboard-page').forEach(p => p.classList.remove('active'));
 
   const navbar = document.getElementById('main-navbar');
+
   if (dashPages.includes(page)) {
+    // Dashboard pages: hide navbar, activate the dashboard element
     const el = document.getElementById(`page-${page}`);
     if (el) el.classList.add('active');
     if (navbar) navbar.style.display = 'none';
+  } else if (authPages.includes(page)) {
+    // Auth/login pages: hide navbar
+    const el = document.getElementById(`page-${page}`);
+    if (el) el.classList.add('active');
+    if (navbar) navbar.style.display = 'none';
+    window.scrollTo(0, 0);
   } else {
+    // Public pages: show navbar
     const el = document.getElementById(`page-${page}`);
     if (el) el.classList.add('active');
     if (navbar) navbar.style.display = 'flex';
@@ -56,7 +66,7 @@ function navigate(page) {
     if (formSection) formSection.classList.remove('hidden');
     if (successSection) successSection.classList.add('hidden');
   }
-}
+}   
 
 function setActiveNav(el) {
   document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
@@ -74,31 +84,28 @@ if (typeof window !== 'undefined') {
 
 export default function App() {
   useEffect(() => {
-    // 1. Check browser memory for the last visited page on reload
-    const savedPage = localStorage.getItem('currentPage');
-    
-    if (savedPage) {
-      navigate(savedPage); // Stay exactly on the current page
+  const savedPage = localStorage.getItem('currentPage');
+  const blockedPages = [...dashPages, ...authPages];
+
+  // Never auto-restore dashboard or login pages on reload
+  if (savedPage && !blockedPages.includes(savedPage)) {
+    navigate(savedPage);
+  } else {
+    navigate('home');
+  }
+
+  const auth = getAuth();
+
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log('Firebase session detected');
     } else {
-      navigate('home'); // Default fallback if it's the absolute first visit
+      console.log('No Firebase session');
     }
+  });
 
-    // 2. Safely handle Firebase sessions without forcefully changing the user's active page
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("Session detected.");
-        // Only run a dynamic redirect if no specific page was stored in memory
-        if (!savedPage) {
-          setTimeout(() => { navigate('admin-dashboard'); }, 100);
-        }
-      } else {
-        console.log("No user logged in.");
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
+  return () => unsubscribe();
+}, []);
 
   return (
     <div id="app">

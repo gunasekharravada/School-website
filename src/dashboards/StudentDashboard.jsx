@@ -162,8 +162,8 @@ export default function StudentDashboard({ navigate, showToast }) {
   return (
     <div className="dashboard-page" id="page-student-dashboard">
       <aside className="sidebar">
-        <div className="sidebar-header"><div className="sidebar-brand"><div className="logo-icon">🏫</div><div className="sidebar-brand-name">Vidyalaya</div></div></div>
-        <div className="sidebar-user"><div className="sidebar-avatar">👨‍🎓</div><div className="sidebar-user-name">Arjun Sharma</div><div className="sidebar-user-role">Class 10A · Roll No. VID202042</div></div>
+        <div className="sidebar-header"><div className="sidebar-brand"><div className="logo-icon">🏫</div><div className="sidebar-brand-name">Indian Springs School</div></div></div>
+        <div className="sidebar-user"><div className="sidebar-avatar">👨‍🎓</div><div className="sidebar-user-name">Gunasekhar ravada</div><div className="sidebar-user-role">Class 10 (A) · Roll No. 25l35a0541</div></div>
         <nav className="sidebar-nav">
           <div className="sidebar-section-label">Main</div>
           <div className="sidebar-item active" onClick={(e) => switchDashSection('std-home', e.currentTarget)}><span className="icon">🏠</span>Dashboard</div>
@@ -187,19 +187,19 @@ export default function StudentDashboard({ navigate, showToast }) {
           <div className="topbar-right">
             <div className="topbar-btn">🔔</div>
             <div className="topbar-btn">⚙️</div>
-            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.9rem', fontWeight: 700 }}>A</div>
+            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.9rem', fontWeight: 700 }}>G</div>
           </div>
         </div>
         <div className="dashboard-content">
 
           {/* Home Section */}
           <div className="dash-section active" id="std-home">
-            <div className="welcome-banner"><div className="welcome-title">Good Morning, Arjun! 👋</div><div className="welcome-subtitle">Class 10A · Term 2 · 4 subjects today</div></div>
+            <div className="welcome-banner"><div className="welcome-title">Good Morning, Gunasekhar! 👋</div><div className="welcome-subtitle">Class 10A · Term 1  </div></div>
             <div className="stats-row">
-              <div className="stat-card"><div className="stat-icon" style={{ background: '#eff6ff' }}>📊</div><div className="stat-data"><div className="num">87%</div><div className="label">Overall Score</div></div></div>
-              <div className="stat-card"><div className="stat-icon" style={{ background: '#f0fdf4' }}>✅</div><div className="stat-data"><div className="num">94%</div><div className="label">Attendance</div></div></div>
-              <div className="stat-card"><div className="stat-icon" style={{ background: '#fef3c7' }}>🧠</div><div className="stat-data"><div className="num">12</div><div className="label">Quizzes Done</div></div></div>
-              <div className="stat-card"><div className="stat-icon" style={{ background: '#fef2f2' }}>📚</div><div className="stat-data"><div className="num">7</div><div className="label">Pending Tasks</div></div></div>
+              <div className="stat-card"><div className="stat-icon" style={{ background: '#eff6ff' }}>📊</div><div className="stat-data"><div className="num">0%</div><div className="label">Overall Score</div></div></div>
+              <div className="stat-card"><div className="stat-icon" style={{ background: '#f0fdf4' }}>✅</div><div className="stat-data"><div className="num">0%</div><div className="label">Attendance</div></div></div>
+              <div className="stat-card"><div className="stat-icon" style={{ background: '#fef3c7' }}>🧠</div><div className="stat-data"><div className="num">1</div><div className="label">Quizzes Done</div></div></div>
+              <div className="stat-card"><div className="stat-icon" style={{ background: '#fef2f2' }}>📚</div><div className="stat-data"><div className="num">0</div><div className="label">Pending Tasks</div></div></div>
             </div>
             <div className="cards-grid">
               <div className="card"><div className="card-header"><div className="card-title">📅 Today's Schedule</div></div><div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}><div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.6rem', background: 'var(--bg)', borderRadius: '6px' }}><span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', width: '48px' }}>9:00 AM</span><span style={{ fontWeight: 600, fontSize: '0.87rem' }}>Mathematics</span></div><div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.6rem', background: 'var(--bg)', borderRadius: '6px' }}><span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', width: '48px' }}>10:30 AM</span><span style={{ fontWeight: 600, fontSize: '0.87rem' }}>Physics</span></div><div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.6rem', background: 'var(--bg)', borderRadius: '6px' }}><span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', width: '48px' }}>12:00 PM</span><span style={{ fontWeight: 600, fontSize: '0.87rem' }}>English</span></div><div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.6rem', background: 'var(--bg)', borderRadius: '6px' }}><span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', width: '48px' }}>2:00 PM</span><span style={{ fontWeight: 600, fontSize: '0.87rem' }}>Chemistry</span></div></div></div>
@@ -319,7 +319,7 @@ export default function StudentDashboard({ navigate, showToast }) {
             <div className="chat-container">
               <div className="chat-header"><div className="chat-avatar">🤖</div><div><div className="chat-name">Vidya AI Assistant</div><div className="chat-status">Online · Ready to help</div></div></div>
               <div className="chat-messages" id="chatMessages">
-                <div className="chat-msg bot"><div className="chat-bubble">Hello Arjun! 👋 I'm your study assistant. Ask me anything about your subjects, upcoming exams, or school schedule!</div><div className="chat-time">Just now</div></div>
+                <div className="chat-msg bot"><div className="chat-bubble">Hello Gunasekhar! 👋 I'm your study assistant. Ask me anything about your subjects, upcoming exams, or school schedule!</div><div className="chat-time">Just now</div></div>
               </div>
               <div className="chat-input-wrap">
                 <input className="chat-input" id="chatInput" placeholder="Ask about a topic, formula, or concept..." onKeyPress={(e) => { if (e.key === 'Enter') sendChat(); }} />
@@ -349,9 +349,10 @@ export default function StudentDashboard({ navigate, showToast }) {
             <div className="card" style={{ maxWidth: '500px' }}>
               <div style={{ marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #e2e8f0' }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem' }}>Account Information</h3>
-                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.2rem 0' }}><strong>Name:</strong> Arjun Sharma</p>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.2rem 0' }}><strong>Name:</strong> Gunasekhar ravada</p>
                 <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.2rem 0' }}><strong>Role:</strong> Student (Class 10A)</p>
-                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.2rem 0' }}><strong>Roll No:</strong> VID202042</p>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.2rem 0' }}><strong>Roll No:</strong> 25l35a0541</p>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.2rem 0' }}><strong>Parent Email:</strong> gunasekharravada@gmail.com</p>
               </div>
 
               <form onSubmit={handlePasswordUpdate}>
